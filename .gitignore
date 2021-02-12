@@ -1,0 +1,9 @@
+*.csv
+*.rds
+*.txt
+*.xlsx
+*.png
+*.sh.*
+/Results
+/Dictionaries
+/Data
