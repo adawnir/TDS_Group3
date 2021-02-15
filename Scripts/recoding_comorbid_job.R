@@ -8,26 +8,7 @@ setwd(project_path)
 library(data.table)
 library(tidyverse)
 
-### Extract data set----
-data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
-myfields=list("20001", "20002")
-
-# Extracting the column ids 
-column_id=grep("eid", colnames(data))
-found_fieldids=NULL
-for (k in 1:length(myfields)){
-  mygrep=grep(paste0("X",myfields[k],"."), fixed=TRUE, colnames(data))
-  if (length(mygrep)>0){
-    found_fieldids=c(found_fieldids, myfields[k])
-  }
-  column_id=c(column_id, mygrep)
-}
-
-# Extracting required columns from dataset
-extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
-withdrawn=as.character(read.csv("../Data/w19266_20200204.csv")[,1])
-mydata=subset(extracted, !extracted$eid %in% withdrawn)
-saveRDS(mydata, "../Results/extract_comorbid.rds")
+mydata=readRDS("../Results/extract_comorbid.rds")
 
 ### Define diseases----
 diseases=c("cardiovascular", "hypertension", "diabetes", "respiratory", "autoimmune")
@@ -100,8 +81,7 @@ self_autoimmune=readLines("../Dictionaries/self_report_autoimmune.txt")
 hes=readRDS("../Results/joined_hes.rds")
 
 # HES table with all instances for defined study population
-myhes=hes %>% filter(eid %in% case_control$eid)
-saveRDS(myhes, "../Results/myhes.rds")
+myhes=readRDS("../Results/myhes.rds")
 
 # Case diagnosis
 case_diag=case_control %>% select(eid, epistart)
