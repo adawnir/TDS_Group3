@@ -9,27 +9,31 @@ library(data.table)
 library(tidyverse)
 
 ### Extract data set----
-data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
-myfields=list("20001", "20002")
+#data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
+#myfields=list("20001", "20002")
 
 # Extracting the column ids 
-column_id=grep("eid", colnames(data))
-found_fieldids=NULL
-for (k in 1:length(myfields)){
-  mygrep=grep(paste0("X",myfields[k],"."), fixed=TRUE, colnames(data))
-  if (length(mygrep)>0){
-    found_fieldids=c(found_fieldids, myfields[k])
-  }
-  column_id=c(column_id, mygrep)
-}
+#column_id=grep("eid", colnames(data))
+#found_fieldids=NULL
+#for (k in 1:length(myfields)){
+  #mygrep=grep(paste0("X",myfields[k],"."), fixed=TRUE, colnames(data))
+  #if (length(mygrep)>0){
+    #found_fieldids=c(found_fieldids, myfields[k])
+  #}
+  #column_id=c(column_id, mygrep)
+#}
 
 # Extracting required columns from dataset
-extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
-withdrawn=as.character(read.csv("../Data/w19266_20200204.csv")[,1])
-mydata=subset(extracted, !extracted$eid %in% withdrawn)
-saveRDS(mydata, "../Results/extract_comorbid.rds")
+#extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
+#withdrawn=as.character(read.csv("../Data/w19266_20200204.csv")[,1])
+#mydata=subset(extracted, !extracted$eid %in% withdrawn)
+#saveRDS(mydata, "../Results/extract_comorbid.rds")
 
 ### Define diseases----
+# Load data
+mydata=readRDS("../Results/extract_comorbid.rds")
+
+# Set diseases
 diseases=c("cardiovascular", "hypertension", "diabetes", "respiratory", "autoimmune")
 names(diseases)=diseases
 
@@ -73,8 +77,6 @@ icd10_respiratory=c(paste0("J", 30:39), # other upper
 icd10_autoimmune=readLines("../Dictionaries/icd10_autoimmune.txt")
 
 ## Self-reported illness codes
-# Self-reported illness
-mygrep=grep("X20002.", fixed=TRUE, colnames(mydata))
 
 # Cardiovascular (all circulatory except hypertension)
 self_cardiovascular=as.character(c(1066:1068,
@@ -100,33 +102,40 @@ self_autoimmune=readLines("../Dictionaries/self_report_autoimmune.txt")
 hes=readRDS("../Results/joined_hes.rds")
 
 # HES table with all instances for defined study population
-myhes=hes %>% filter(eid %in% case_control$eid)
-saveRDS(myhes, "../Results/myhes.rds")
+#myhes=hes %>% filter(eid %in% case_control$eid)
+#saveRDS(myhes, "../Results/myhes.rds")
 
-# Case diagnosis
-case_diag=case_control %>% select(eid, epistart)
+myhes=readRDS("../Results/myhes.rds")
+
+# Basline data
+baseline=case_control %>% select(eid,date_baseline)
+
+# Self-reported illness
+mygrep=c(1,grep("X20002.", fixed=TRUE, colnames(mydata)))
+self_data=mydata[mydata$eid %in% case_control$eid,mygrep]
+
 # Recode comorbidities
 for (d in 1:length(diseases)){
   print(names(diseases)[d])
   disease=diseases[d]
   icd10_list=eval(parse(text=paste0("icd10_",disease)))
   self_list=eval(parse(text=paste0("self_",disease)))
-  myeids=NULL
   
   # ICD10 codes
-  tmp=myhes[grepl(paste0(paste0("^", icd10_list),collapse="|"), myhes$diag_icd10),]
-  mytime=case_diag[which(tmp$eid %in% case_diag$eid),"epistart"]
-  for (i in 1:length(tmp$epistart)){
-    if (is.na(mytime[i]) | tmp$epistart[i] > mytime[i]){
-      myeids=c(myeids,as.character(tmp$eid[i]))
-    } 
-  }
+  diag_eids=myhes %>%
+    select(eid, epistart) %>%
+    filter(grepl(paste0(paste0("^", icd10_list),collapse="|"), myhes$diag_icd10)) %>%
+    right_join(baseline, by="eid") %>%
+    filter(epistart <= date_baseline) %>%
+    .$eid
+  
   # Self-reported codes
-  self_eids=apply(mydata[,mygrep],
-                  2,
-                  function(x)mydata$eid[grepl(paste0(self_list,collapse="|"), x)]) %>%
-    unlist()
-  myeids=c(self_eids,myeids) %>% unique %>% as.character
+  self_eids=apply(self_data[,-1], 2,
+                  function(x) self_data$eid[grep(paste0(self_list,collapse="|"),x)]) %>%
+    unlist
+  
+  # Recode
+  myeids=c(diag_eids,self_eids) %>% unique %>% as.character
   print(table(comorbid[myeids,names(diseases)[d]]))
   comorbid[myeids,names(diseases)[d]]=1
   print(table(comorbid[,names(diseases)[d]]))
@@ -134,42 +143,51 @@ for (d in 1:length(diseases)){
 }
 
 ## Cancers besides cases
-# Cases to exclude -- by case/control definition they should be excluded
-#icd10_case=c(paste0("C",33:34), paste0("D02.",1:2), paste0("C",67), paste0("D09.",0))
-#self_case=as.character(c(1001,1027,1028,1080,1035))
-
-# All cancers
 icd10_cancer=c(c(paste0("C0", 0:9), paste0("C", 10:14)), # lip, oral cavity, larynx
                paste0("C", 15:26), # digestive
-               paste0("C", 30:39), # respiratory
+               c(paste0("C", 30:32),paste0("C", 35:39)), # other respiratory
                paste0("C", 40:41), # bone, cartilage
                paste0("C", 43:44), # skin
                paste0("C", 45:49), # mesothelial
                paste0("C", 50), # breast
                paste0("C", 51:58), # female genital
                paste0("C", 60:63), # male genital
-               paste0("C", 64:68), # urinary
+               c(paste0("C", 64:66),paste0("C", 68)), # other urinary
                paste0("C", 69:72), # nervous
                paste0("C", 73:75), # endocrin
                paste0("C", 76:80), # other sites
                paste0("C", 81:96), # lymphoid
                paste0("C", 97), # multiple
-               paste0("D0", 0:9), # in situ
+               c(paste0("D0", 0:1),
+                 paste0("D02.", 3:4),
+                 paste0("D0", 3:8),
+                 paste0("D09.", 1:3)), # other in situ
                paste0("D", 37:48)) # uncertain behaviour
+
 # Self-reported cancer
-mygrep=grep("X20001.", fixed=TRUE, colnames(mydata))
+mygrep=c(1,grep("X20001.", fixed=TRUE, colnames(mydata)))
+self_data=mydata[mydata$eid %in% case_control$eid,mygrep]
+
 # ICD10 codes
-tmp=myhes[grepl(paste0(paste0("^", icd10_cancer),collapse="|"), myhes$diag_icd10),]
-mytime=case_diag[which(tmp$eid %in% case_diag$eid),"epistart"]
-for (i in 1:length(tmp$epistart)){
-  if (is.na(mytime[i]) | tmp$epistart[i] > mytime[i]){
-    myeids=c(myeids,as.character(tmp$eid[i]))
-  } 
-}
+diag_eids=myhes %>%
+  select(eid, epistart) %>%
+  filter(grepl(paste0(paste0("^", icd10_cancer),collapse="|"), myhes$diag_icd10)) %>%
+  right_join(baseline, by="eid") %>%
+  filter(epistart <= date_baseline) %>%
+  .$eid
+
 # Self-reported codes
-self_eids=mydata$eid[rowSums(is.na(mydata[,mygrep]))!=length(mygrep)]
-myeids=c(self_eids,myeids) %>% unique %>% as.character
+self_eids=self_data$eid[rowSums(is.na(self_data[,-1]))!=length(self_data[,-1])]
+
+# Recode
+myeids=c(diag_eids,self_eids) %>% unique %>% as.character
 comorbid$cancer=ifelse(comorbid$eid %in% myeids,1,0)
 table(comorbid$cancer)
+
+# Restructure
+str(comorbid)
+comorbid=comorbid %>%
+  mutate_at(c(diseases, "cancer"), as.factor)
+summary(comorbid)
 
 saveRDS(comorbid, "../Results/comorbid.rds")
