@@ -11,7 +11,7 @@ library(tidyverse)
 ### Extract data set---
 # Loading the data
 data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
-myfields=list("53","21003","20001")
+myfields=list("53","21022","20001")
 
 # Extracting the column ids 
 column_id=grep("eid", colnames(data))
@@ -67,9 +67,9 @@ hes=hes %>% mutate(epistart=as.Date(epistart,"%d/%m/%Y"))
 
 # Extract date and age at baseline
 sum(is.na(mydata$X53.0.0)) # No missing
-sum(is.na(mydata$X21003.0.0)) # No missing
+sum(is.na(mydata$X21022.0.0)) # No missing
 baseline=mydata %>%
-  select(eid, X53.0.0, X21003.0.0) %>%
+  select(eid, X53.0.0, X21022.0.0) %>%
   mutate(X53.0.0=as.Date(X53.0.0,"%Y-%m-%d"))
 colnames(baseline)=c("eid","date_baseline","age_baseline")
 
@@ -131,12 +131,11 @@ str(case_control)
 case_control=case_control %>%
   select(eid, date_baseline, age_baseline, case_status, ins_index, level, diag_icd10, epistart,
          time_diag_days, age_diag) %>%
-  mutate(case_status=as.factor(case_status),
+  mutate(case_status=factor(case_status, labels=c("control","lung","bladder")),
          level=as.factor(level),
          time_diag_days=as.integer(time_diag_days))
 rownames(case_control)=case_control[,1]
 str(case_control)
-
 # Check
 table(case_control$case_status)
 

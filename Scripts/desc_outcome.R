@@ -11,21 +11,38 @@ library(tidyverse)
 # Load data set
 case_control=readRDS("../Results/case_control.rds")
 
+# Filter cases
+cases=case_control %>% filter(case_status!="control")
+
 # Covert days to years
-case_control$time_diag_years=case_control$time_diag_days/365.25
-# Interleaved histograms
-ggplot(case_control, aes(x=time_diag_years, color=case_status)) +
-  geom_histogram(fill="white", position="dodge")+
-  theme(legend.position="top")
-# Add mean lines
-mu=case_control %>%
+cases$time_diag_years=cases$time_diag_days/365.25
+
+# Histogram
+# Mean time to diag
+mu=cases %>%
   group_by(case_status) %>%
-  filter(case_status!=0) %>%
   summarise(grp.mean=mean(time_diag_years))
-p=ggplot(case_control, aes(x=time_diag_years, fill=case_status, color=case_status)) +
-  geom_histogram(position="identity", alpha=0.5)+
-  geom_vline(data=mu, aes(xintercept=grp.mean, color=case_status),
-             linetype="dashed")+
+p=ggplot(cases, aes(x=time_diag_years, color=case_status)) +
+  geom_histogram(fill="white", position="identity", bins=50)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=case_status), linetype="dashed")+
+  labs(title = "Lung vs Bladder cancer: Time to diagnosis",
+       x="Years",
+       y="Frequency",
+       color="Type of cancer") +
+  theme_minimal()
+p
+
+# Mean age_diag
+mu=cases %>%
+  group_by(case_status) %>%
+  summarise(grp.mean=mean(age_diag))
+p=ggplot(cases, aes(x=age_diag, color=case_status)) +
+  geom_histogram(fill="white", position="identity", bins=50)+
+  geom_vline(data=mu, aes(xintercept=grp.mean, color=case_status), linetype="dashed")+
+  labs(title = "Lung vs Bladder cancer: Age at diagnosis",
+       x="Years",
+       y="Frequency",
+       color="Type of cancer") +
   theme_minimal()
 p
 
