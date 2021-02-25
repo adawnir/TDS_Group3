@@ -88,15 +88,15 @@ biomk_na_p <- aggregate(biomk_cc[,11:38], by = list(biomk_cc$case_status) ,
 ##### distribution
 ## lung VS. controls
 par(mfrow = c(1,2))
-lapply(colnames(biomk_cc[,2:29]), function(x){
-  highestvalue <- max(biomk_cc[,x], na.rm = T)
-  a <- hist(biomk_cc[,x][which(biomk_cc$case_status == "lung")], xlim = c(0, highestvalue), plot = F)
-  b <- hist(biomk_cc[,x][which(biomk_cc$case_status == "control")], xlim = c(0, highestvalue), plot = F)
+lapply(colnames(biomk_cc[,11:38]), function(x){
+  highestvalue <- max(log(biomk_cc[,x]), na.rm = T)
+  a <- hist(log(biomk_cc[,x][which(biomk_cc$case_status == "lung")]), xlim = c(0, highestvalue), plot = F)
+  b <- hist(log(biomk_cc[,x][which(biomk_cc$case_status == "control")]), xlim = c(0, highestvalue), plot = F)
   highestDensity <- max(a$density, b$density)
-  hist(biomk_cc[,x][which(biomk_cc$case_status == "lung")], main=paste(colnames(biomk_cc[x]), "for lung cases"), 
+  hist(log(biomk_cc[,x][which(biomk_cc$case_status == "lung")]), main=paste(colnames(biomk_cc[x]), "for lung cases"), 
        xlab = "Value", freq = F, 
        xlim = c(0, highestvalue), ylim = c(0, highestDensity))
-  hist(biomk_cc[,x][which(biomk_cc$case_status == "control")], main=paste(colnames(biomk_cc[x]), "for controls"), 
+  hist(log(biomk_cc[,x][which(biomk_cc$case_status == "control")]), main=paste(colnames(biomk_cc[x]), "for controls"), 
        xlab = "Value", freq = F, 
        xlim = c(0, highestvalue), ylim = c(0, highestDensity))
 })
