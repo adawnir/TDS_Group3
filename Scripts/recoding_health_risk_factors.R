@@ -14,6 +14,7 @@ data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
 
 #Age - 21022
 #Sex - 31
+#BMI - 21001
 #Maternal smoking around birth - 1787
 #Smoking status - 20116
 #Current tobacco smoking 1239
@@ -36,7 +37,7 @@ data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
 #Fat intake yesterday - 100004
 #Saturated fat intake yesterday - 100006
 
-myfields=list('21022', '31', "1787", "20116", '1239', '1249','1259', '1558', '1349', '1359', '1369', '1379', '1389', '1498',
+myfields=list('21022', '31', '21001', "1787", "20116", '1239', '1249','1259', '1558', '1349', '1359', '1369', '1379', '1389', '1498',
               '1160', '884', '894', '904', '914', '1528', '1309', '1289', '1299', '100004', '100006')
 
 # Extracting the column ids 
@@ -54,6 +55,18 @@ for (k in 1:length(myfields)){
 extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
 
 #Recoding...
+
+#BMI 21001
+
+extracted$BMI[extracted$X21001.0.0 < 18.5]  <- "Underweight (<18.5)"
+extracted$BMI[extracted$X21001.0.0 >= 18.5 & extracted$X21001.0.0 <25]  <- "Normal Weight (18.5-24.9)"
+extracted$BMI[extracted$X21001.0.0 >= 25 & extracted$X21001.0.0 <30]  <- "Pre-obesity (25-29.9)"
+extracted$BMI[extracted$X21001.0.0 >= 30 & extracted$X21001.0.0 <35]  <- "Obesity class I (30-34.9)"
+extracted$BMI[extracted$X21001.0.0 >= 35 & extracted$X21001.0.0 <40]  <- "Obesity class II (35-39.9)"
+extracted$BMI[extracted$X21001.0.0 >= 40]  <- "Obesity class III (Above 40)"
+extracted$BMI[is.na(extracted$X21001.0.0)] <- NA
+
+dems$BMI <- factor(dems$BMI)
 
 #Maternal smoking 1787
 
@@ -336,7 +349,7 @@ extracted$Gender <- factor(extracted$X31.0.0)
 
 #Save all the recoded variables
 
-healthriskfactors <- extracted %>% select(eid, Gender, Age, MaternalSmoking, SmokingStatus, CurrentSmoking,
+healthriskfactors <- extracted %>% select(eid, Gender, Age, BMI, MaternalSmoking, SmokingStatus, CurrentSmoking,
                                           PastSmoking, HouseholdSmokers, AlcoholFrequency,
                                           ProcessedMeat, Poultry, Beef, LambMutton, Pork, CoffeeCupsPerDay, SleepHours,
                                           ModerateActivityPerDay, VigorousActivityPerDay, WaterPerDay, FruitPerDay,

@@ -1,4 +1,4 @@
-### TDS Project -- Descriptive analysis (outcome)
+### TDS Project -- Recoding outcome
 ## Programme created by Rin Wada on 9 Feb 2021 reviewed on 15 Feb 2021
 
 rm(list=ls())
@@ -10,31 +10,32 @@ library(tidyverse)
 
 ### Extract data set---
 # Loading the data
-data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
-myfields=list("53","21022","20001")
+#data=data.frame(fread("../Data/ukb26390.csv", nrows=1))
+#myfields=list("53","21022","20001")
 
 # Extracting the column ids 
-column_id=grep("eid", colnames(data))
-found_fieldids=NULL
-for (k in 1:length(myfields)){
-  mygrep=grep(paste0("X",myfields[k],"."), fixed=TRUE, colnames(data))
-  if (length(mygrep)>0){
-    found_fieldids=c(found_fieldids, myfields[k])
-  }
-  column_id=c(column_id, mygrep)
-}
+#column_id=grep("eid", colnames(data))
+#for (k in 1:length(myfields)){
+  #found_fieldids=NULL
+  #mygrep=grep(paste0("X",myfields[k],"."), fixed=TRUE, colnames(data))
+  #if (length(mygrep)>0){
+    #found_fieldids=c(found_fieldids, myfields[k])
+  #}
+  #column_id=c(column_id, mygrep)
+#}
 
 # Extracting required columns from dataset
-extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
-withdrawn=as.character(read.csv("../Data/w19266_20200204.csv")[,1])
-mydata=subset(extracted, !extracted$eid %in% withdrawn)
-saveRDS(mydata, "../Results/extract_recruitment.rds")
+#extracted=data.frame(fread("../Data/ukb26390.csv", select=column_id))
+#withdrawn=as.character(read.csv("../Data/w19266_20200204.csv")[,1])
+#mydata=subset(extracted, !extracted$eid %in% withdrawn)
+#saveRDS(mydata, "../Results/extract_recruitment.rds")
 
 ### Define study population----
 mydata=readRDS("../Results/extract_recruitment.rds")
 # Self-reported cancer
 mygrep=grep("X20001.", fixed=TRUE, colnames(mydata))
-self_list=as.character(c(1001,1027,1028,1080,1035))
+self_list=as.character(c(1001,1027,1028,1080, # lung
+                         1035)) # bladder
 
 self_eid=apply(mydata[,mygrep],
                2,
@@ -42,27 +43,28 @@ self_eid=apply(mydata[,mygrep],
   unlist()
 
 # Lung and bladder ICD codes
-icd10_lung=c(paste0("C",33:34), paste0("D02.",1:2))
-icd10_bladder=c(paste0("C",67), paste0("D09.",0))
+icd10_lung=c(paste0("C",33:34), paste0("D02.",1:2)) # lung
+icd10_bladder=c(paste0("C",67), paste0("D09.",0)) # bladder
 
 # HES: Hospital Episode Statistics
-hesin_diag <- data.frame(fread("../Data/hesin_diag.txt"))
-hesin <- data.frame(fread("../Data/hesin.txt")) # Diagnosis data
-colnames(hesin)
+#hesin_diag <- data.frame(fread("../Data/hesin_diag.txt"))
+#hesin <- data.frame(fread("../Data/hesin.txt")) # Diagnosis data
+#colnames(hesin)
 
 # Select unique identifiers and episode start date
-hesin_sub=hesin %>% 
-  na_if("") %>%
-  mutate(epistart=coalesce(epistart, admidate)) %>%
-  select(eid,ins_index,epistart)
+#hesin_sub=hesin %>% 
+  #na_if("") %>%
+  #mutate(epistart=coalesce(epistart, admidate)) %>%
+  #select(eid,ins_index,epistart)
 
 # Join by eid and ins_index
-hes=inner_join(hesin_diag, hesin_sub, by=c("eid","ins_index"))
-head(hes)
-sum(is.na(hes$epistart)) # Successfully replaced missing values
-saveRDS(hes, "../Results/joined_hes.rds")
+#hes=inner_join(hesin_diag, hesin_sub, by=c("eid","ins_index"))
+#head(hes)
+#sum(is.na(hes$epistart)) # Successfully replaced missing values
+#saveRDS(hes, "../Results/joined_hes.rds")
 
 # Format date
+hes=readRDS("../Results/joined_hes.rds")
 hes=hes %>% mutate(epistart=as.Date(epistart,"%d/%m/%Y"))
 
 # Extract date and age at baseline

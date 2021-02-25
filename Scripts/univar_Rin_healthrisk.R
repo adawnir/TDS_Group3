@@ -14,13 +14,15 @@ elf_data=readRDS("../Results/elf_data.rds")
 environ_data=readRDS("../Results/environ_data.rds")
 medical_data=readRDS("../Results/medical_data.rds")
 comorbid_data=readRDS("../Results/comorbid.rds")
+healthrisk_data=readRDS("../Results/health_risk_factors.rds")
 
 ### Without confounding ----
 # Make datasets - inner_join if number of rows are equal, right/left join if unequal
 mydata=right_join(demsocial_data, elf_data, by="eid") %>%
   inner_join(environ_data) %>%
   inner_join(medical_data) %>%
-  inner_join(comorbid_data)
+  inner_join(comorbid_data) %>%
+  inner_join(healthrisk_data)
 colnames(mydata)
 # Resturcutre data - case/control status in first column, confouding factors is subsequent
 mydata=mydata %>% select(case_status,age,gender,BMI,ethnic,employment,townsend,householdincome,own.rent,
@@ -28,7 +30,10 @@ mydata=mydata %>% select(case_status,age,gender,BMI,ethnic,employment,townsend,h
                          pm2.5_absorb,pm2.5,pm2.5_10,traff_intens_near,traff_intens_major,inv_dist_major,
                          close_major_rd_load,num_med_cat,parent_COPD,parent_breast,parent_bowel,
                          parent_lung,parent_prostate,cardiovascular,hypertension,diabetes,respiratory,
-                         autoimmune, cancer)
+                         autoimmune, cancer, HouseholdSmokers, AlcoholFrequency, ProcessedMeat, Poultry, 
+                         Beef, LambMutton, Pork, CoffeeCupsPerDay, SleepHours, ModerateActivityPerDay, 
+                         VigorousActivityPerDay, WaterPerDay, FruitPerDay, CookedVegPerDay, RawVegPerDay,
+                         FatIntake, SatFatIntake)
 str(mydata) # Ensure categorical variables are coded as factors and continuous numerical
 
 # Separate by case
