@@ -3,6 +3,9 @@
 *.txt
 *.xlsx
 *.png
+*.jpeg
+*.jpg
+*.pdf
 *.sh.*
 /Results
 /Dictionaries
