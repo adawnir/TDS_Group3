@@ -8,6 +8,8 @@ setwd(project_path)
 library(data.table)
 library(tidyverse)
 
+### Make one column for each variable of interest ----
+# Load data set
 case_control=readRDS("../Results/case_control.rds")
 recode_covar=readRDS("../Results/recoded_covar.rds")
 
@@ -101,7 +103,7 @@ for (d in 1:length(diseases)){
 summary(tmp) # Missing data: 28766 for Group 1; 26339 for Group 2 diseases
 mydata=inner_join(mydata,tmp,by="eid")
 
-### Select and rename columns----
+# Select and rename columns
 str(mydata)
 mydata=mydata %>% select(eid,ends_with(".0.0"),starts_with("parent"),-matches("X20107.|X20110."))
 str(mydata)
@@ -363,16 +365,20 @@ tmp=covar %>% select(sleep) %>%
   na_if("Do not know") %>% na_if("Prefer not to answer") %>%
   mutate(sleep=as.numeric(sleep))
 summary(tmp$sleep)
-covar$sleep=tmp
+tmp$sleep=ifelse(tmp$sleep <= 6, "≤6",
+                 ifelse(tmp$sleep >=9, "≥9", "7-8"))
+table(tmp$sleep)
+covar$sleep=tmp$sleep
+table(covar$sleep)
 
 ### Recoding Number of medications: 0, 1, >1 ----
 summary(covar$num_med) # 860 missing
-covar$num_med_cat=ifelse(is.na(covar$num_med), NA,
+covar$num_med=ifelse(is.na(covar$num_med), NA,
                          ifelse(covar$num_med==0, "0",
                                 ifelse(covar$num_med==1,"1",">1")))
-table(covar$num_med_cat, useNA = "ifany")
+table(covar$num_med, useNA = "ifany")
 
-### Restructuring data
+### Restructuring data ----
 str(covar)
 covar2=covar %>% select(eid,age_baseline,sex,ethnic,townsend,employment,education,type_accom,
                         own_rent,num_hh,hh_income,bmi,total_meat,white_meat,red_meat,pro_meat,
@@ -384,10 +390,33 @@ covar2=covar %>% select(eid,age_baseline,sex,ethnic,townsend,employment,educatio
 str(covar2)
 saveRDS(covar2, "../Results/covar_without_comorbid.rds")
   
-### Combine with comorbid data
+### Combine with comorbid data ----
 covar2=readRDS("../Results/covar_without_comorbid.rds")
 comorbid=readRDS("../Results/comorbid.rds")
 
 covar3=inner_join(covar2,comorbid,by="eid")
 str(covar3)
-saveRDS(covar3, "../Results/covar_master.rds")
+
+### Relevel covar
+covar4=covar3 %>% mutate(sex=relevel(sex, "Female"),
+                         ethnic=relevel(ethnic, "White"),
+                         employment=relevel(employment, "Employed"),
+                         education=relevel(education,"Intermediate"),
+                         type_accom=relevel(type_accom,"House"),
+                         own_rent=relevel(own_rent,"Own"),
+                         hh_income=relevel(hh_income, "31,000-51,999"),
+                         bmi=relevel(bmi,"Normal"),
+                         pro_meat=relevel(pro_meat,"Never"),
+                         salt=relevel(salt,"Never/rarely"),
+                         tea=relevel(tea,"0"),
+                         coffee=relevel(coffee,"0"),
+                         water=relevel(water,"0"),
+                         alcohol=relevel(alcohol,"Never/Rarely"),
+                         smoking=relevel(smoking,"Never"),
+                         smoke_hh=relevel(smoke_hh,"No"),
+                         num_med=relevel(num_med,"0"),
+                         sleep=relevel(sleep,"7-8"))
+str(covar4)
+
+saveRDS(covar4, "../Results/covar_master.rds")
+
