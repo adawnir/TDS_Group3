@@ -1,0 +1,529 @@
+---
+title: "Results TDS Group 3"
+date: "12 March 2021"
+author: "Rin Wada, Chia-An (Vivian) Lin, Fergal Madden, Ines Gerard-Ursin"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 3
+    number_sections: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r packages, echo=FALSE}
+library(tidyverse)
+library(kableExtra)
+library(ggplot2)
+```
+
+# TDS Group 3
+
+## Inclusion exclusion criteria
+Definitions:
+
+* Cases: Participants diagnosed with lung/bladder cancer after date of attending assessment centre, who were not diagnosed with any other cancer before/on the same day of the lung/bladder cancer diagnosis.
+* Controls: Participants with no prevalent cancer of any type at baseline
+
+*Cancer diagnosis information from HES, coded using ICD10 and ICD9 codes. Additional cancer information at baseline from Self-reported cancers.
+
+```{r flowchart, echo=FALSE}
+DiagrammeR::grViz("digraph {
+  graph [layout = dot, rankdir = TB]
+  node [shape = rectangle]        
+  rec1 [label = 'UK Biobank Cohort \n (N=502,537)']
+  rec2 [label =  'Consenting participants \n (N=502,506)']
+  rec3 [label = 'Partipants with no prevalent cancer at baseline or \n before/on same day of lung/bladder cancer diagnosis \n (N=452,753)']
+  rec4 [label = 'Controls \n (N=449,042)']
+  rec5 [label = 'Cases: Lung cancer \n (N=1,987)']
+  rec6 [label = 'Cases: Bladder cancer \n (N=1,724)']
+  
+  # edge definitions with the node IDs
+  rec1 -> rec2 -> rec3 -> {rec4,rec5,rec6}
+  }", 
+  height = 500)
+```
+
+
+
+## Table 1
+
+```{r table1, eval=TRUE, echo=FALSE}
+library(flextable)
+tab1=readRDS("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Results/table1.rds")
+knitr::knit_print(tab1)
+
+
+
+
+
+```
+
+## Univariate Analysis
+
+```{r manhattan lung, fig.cap="Manhattan", echo=FALSE, out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/manhattan_lung_wk8.pdf")
+```
+
+```{r manhattan bladder, fig.cap="Manhattan", echo=FALSE, out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/manhattan_bladder_wk8.pdf")
+```
+
+```{r scatter pconf, fig.cap="P Values", echo=FALSE, out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders_bladder.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders_lung.pdf")
+
+```
+
+```{r scatter psmoke, fig.cap="P Values",echo=FALSE, out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking_bladder.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking_lung.pdf")
+```
+
+```{r forest wk7, fig.cap="Forest", echo=FALSE, out.width='2000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_plotrix_h.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_plotrix_v.pdf")
+
+```
+
+## Sensitivity Analysis by Age at Diagnosis and Time to Diagnosis
+*TO BE COMPLETED*
+```{r age_diag_forest, fig.cap="Age at Diagnosis Analysis", echo=FALSE, out.width='2000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+```
+
+```{r time_diag_forest, fig.cap="Time to Diagnosis Analysis", echo=FALSE, out.width='2000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+```
+
+## LASSO Logistic Regression
+Models:
+
+* 1 = Base model
+* 2 = Adjusted for smoking
+
+Denoised using linear regression and logistic regression for continuous and categorical variables, respectively. One-hot encoding used for categorical variables with more than 2 levels.
+
+Additionally, models with forced confounders were run to check for any biase in the denoised datasets.
+
+* 0.1 = Base model adjusted for sex, age and BMI (forced variables)
+* 0.2 = Adjusted for smoking (forced variables)
+
+Four models run for each outcome (lung/bladder cancer):
+
+* One Stability Selection LASSO logistic regression model was run for each data set.
+* All models calibrated based on binomial deviance using 50% subsample (randomly selected while taking case/control status into account).
+
+### Denoised 
+
+#### Mean Odds Ratios
+*Lung* 
+```{r lasso OR lung, echo=FALSE, fig.cap="Lung: Mean Odds Ratio", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_lung_denoise.pdf")
+```
+
+*Bladder* 
+```{r lasso OR bladder, echo=FALSE, fig.cap="Bladder: Mean Odds Ratio", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_bladder_denoise.pdf")
+```
+
+#### Selection Proportion
+Dashed red line threshold = max(pi[base model], pi[adjusted model])
+*Lung* 
+```{r lasso selprop lung, echo=FALSE, fig.cap="Lung: Selection Proportion", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_lung_denoise.pdf")
+```
+
+*Bladder* 
+```{r lasso selprop bladder, echo=FALSE, fig.cap="Bladder: Selection Proportion", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_bladder_denoise.pdf")
+```
+
+#### Prediction Performance
+*Lung* 
+```{r lasso auc lung.1, echo=FALSE, fig.cap="Lung: Base model AUC", out.width='500'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.1.pdf")
+```
+
+```{r lasso auc lung.2, echo=FALSE, fig.cap="Lung: Adjusted model AUC", out.width='500'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.2.pdf")
+```
+
+*Bladder* 
+```{r lasso auc bladder.1, echo=FALSE, fig.cap="Bladder: Base model AUC", out.width='500'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.1.pdf")
+```
+
+```{r lasso auc bladder.2, echo=FALSE, fig.cap="Bladder: Adjusted model AUC", out.width='500'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.2.pdf")
+```
+
+
+### Forced (using Penality.Factor) 
+
+#### Mean Odds Ratios
+*Lung* 
+```{r lasso OR lung force, echo=FALSE, fig.cap="Lung: Mean Odds Ratio", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_lung_force.pdf")
+```
+
+*Bladder* 
+```{r lasso OR bladder frpce, echo=FALSE, fig.cap="Bladder: Mean Odds Ratio", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_bladder_force.pdf")
+```
+
+#### Selection Proportion
+*Lung* 
+```{r lasso selprop lung force, echo=FALSE, fig.cap="Lung: Selection Proportion", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_lung_force.pdf")
+```
+
+*Bladder* 
+```{r lasso selprop bladder force, echo=FALSE, fig.cap="Bladder: Selection Proportion", out.width='1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_bladder_force.pdf")
+```
+## sPLS
+### lung cancer
+#### Calibration
+```{r sPLS calibration on lung, echo=FALSE, eval = FALSE, out.width='1000'}
+
+# load data
+lung.1 <- readRDS("../Results/denoised/lung.1_denoised.rds")
+lung.2 <- readRDS("../Results/denoised/lung.2_denoised.rds")
+
+# create balanced data and do calibration
+foo <- function(i, datt){
+  set.seed(i)
+  random_control <- datt[which(datt$case_status == 0), ]
+  random_control <- random_control[sample(nrow(datt), 1200), ]
+  random <- rbind(random_control, datt[which(datt$case_status == 1),])
+  
+  ## calibration
+  X_pooled <- random[,-1]
+  Y_pooled <- random[,1]
+  set.seed(1)
+  splsda = CalibratesPLSDA(dataX = X_pooled, dataY = Y_pooled, ncomp = 1, Nrepeat = 5)
+  return(splsda$NVar)
+}
+
+no_lung.1 <- sapply(1:100, lung.1, FUN = foo)
+no_lung.2 <- sapply(1:100, lung.2, FUN = foo)
+
+```
+
+<br/>
+<br/>
+
+```{r stability analyses on lung.1, echo=FALSE, fig.cap="Stability analyses for sPLS on lung adjusted for age, sex and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/stab_lung_1.pdf")
+
+```
+
+<br/>
+<br/>
+
+```{r stability analyses on lung.2, echo=FALSE, fig.cap="Stability analyses for sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/stab_lung_2.pdf")
+```
+
+<br/>
+<br/>
+
+#### Stability selection
+
+Lambda = 36, proportion = 0.9
+```{r stability selection on lung.1, echo=FALSE, fig.cap="Stability selection for sPLS on lung adjusted for age, sex, and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/CalibrationPlot_lung.1.png")
+```
+
+<br/>
+<br/>
+
+```{r selection proportion on lung.1, echo=FALSE, fig.cap="Selection proportion for sPLS on lung adjusted for age, sex, and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/selection_proportions_lung.1.png")
+```
+
+<br/>
+<br/>
+
+Use results from stability selection for sPLS, lambda = 36
+
+```{r running sPLS on lung.1, echo=FALSE, eval=FALSE}
+x_lung.1 <- lung.1[,-1]
+x_lung.1 <- cbind(x_lung.1[,5:46], x_lung.1[,1:4], x_lung.1[, 47:98])
+y_lung.1 <- lung.1[,1]
+
+MysPLSDA_lung.1 <- splsda(x_lung.1, y_lung.1, ncomp = 1, keepX = 36)
+```
+
+```{r loading coefficients on lung.1, echo=FALSE, fig.cap="Loading coefficients from sPLS on lung adjusted for age, sex, and BMI", out.width = '800'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_lung_1.png")
+```
+
+<br/>
+<br/>
+
+Lambda = 38, proportion = 0.9
+```{r stability selection on lung.2, echo=FALSE, fig.cap="Stability selection for sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/CalibrationPlot_lung.2.png")
+```
+
+<br/>
+<br/>
+
+```{r selection proportion on lung.2, echo=FALSE, fig.cap="Selection proportion for sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/selection_proportions_lung.2.png")
+```
+
+<br/>
+<br/>
+
+Use results from stability selection for sPLS, lambda = 38
+
+```{r running sPLS on lung.2, echo=FALSE, eval=FALSE}
+x_lung.2 <- lung.2[,-1]
+y_lung.2 <- lung.2[,1]
+
+MysPLSDA_lung.2 <- splsda(x_lung.2, y_lung.2, ncomp = 1, keepX = 38)
+```
+
+```{r loading coefficients in lung.2, echo=FALSE, fig.cap="Loading coefficients from sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '800'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_lung_2.png")
+```
+
+
+### bladder cancer
+#### Calibration
+```{r sPLS calibration on bladder, echo=FALSE, eval = FALSE, out.width='1000'}
+# load data
+bladder.1 <- readRDS("../Results/denoised/bladder.1_denoised.rds")
+bladder.2 <- readRDS("../Results/denoised/bladder.2_denoised.rds")
+
+# create balanced data and do calibration
+foo <- function(i, datt){
+  set.seed(i)
+  random_control <- datt[which(datt$case_status == 0), ]
+  random_control <- random_control[sample(nrow(datt), 1200), ]
+  random <- rbind(random_control, datt[which(datt$case_status == 1),])
+  
+  ## calibration
+  X_pooled <- random[,-1]
+  Y_pooled <- random[,1]
+  set.seed(1)
+  splsda = CalibratesPLSDA(dataX = X_pooled, dataY = Y_pooled, ncomp = 1, Nrepeat = 5)
+  return(splsda$NVar)
+}
+
+no_bladder.1 <- sapply(1:100, bladder.1, FUN = foo)
+no_bladder.2 <- sapply(1:100, bladder.2, FUN = foo)
+
+# sPLS
+x_bladder.1 <- bladder.1[,-1]
+y_bladder.1 <- bladder.1[,1]
+MysPLSDA_bladder.1 <- splsda(x_bladder.1, y_bladder.1, ncomp = 1, keepX = 28)
+
+# stability analyses
+set.seed(1)
+Stab_bladder.1 = StabilityPlot(X = x_bladder.1, Y =  y_bladder.1, NIter = 100)
+pheatmap(Stab_bladder.1, cluster_rows = FALSE, cluster_cols = FALSE, display_numbers = TRUE,
+         height = 30, width = 60, fontsize = 20, filename = "stab_bladder_1.pdf")
+
+Stab_bladder.2 = StabilityPlot(X = x_bladder.2, Y =  y_bladder.2, NIter = 100)
+pheatmap(Stab_bladder.2, cluster_rows = FALSE, cluster_cols = FALSE, display_numbers = TRUE,
+         height = 30, width = 60, fontsize = 20, filename = "stab_bladder_2.pdf")
+
+```
+
+<br/>
+<br/>
+
+```{r stability analyses on bladder.1, echo=FALSE, fig.cap="Stability analyses for sPLS on bladder adjusted for age, sex and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/stab_bladder_1.pdf")
+
+```
+
+<br/>
+<br/>
+
+```{r stability analyses on bladder.2, echo=FALSE, fig.cap="Stability analysis for sPLS on bladder adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/stab_bladder_2.pdf")
+```
+
+<br/>
+<br/>
+
+#### Stability selection
+Lambda = 22, proportion = 0.9
+```{r stability selection on bladder.1, echo=FALSE, fig.cap="Stability selection for sPLS on bladder adjusted for age, sex, and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/CalibrationPlot_bladder.1.png")
+```
+
+<br/>
+<br/>
+
+```{r selection proportion on bladder.1, echo=FALSE, fig.cap="Selection proportion for sPLS on bladder adjusted for age, sex, and BMI", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/selection_proportions_bladder.1.png")
+```
+
+<br/>
+<br/>
+
+Use results from stability selection for sPLS, lambda = 22
+
+```{r running sPLS on bladder.1, echo=FALSE, eval=FALSE}
+x_bladder.1 <- bladder.1[,-1]
+x_bladder.1 <- cbind(x_bladder.1[,5:47], x_bladder.1[,1:4], x_bladder.1[, 48:98])
+y_bladder.1 <- bladder.1[,1]
+
+MysPLSDA_bladder.1 <- splsda(x_bladder.1, y_bladder.1, ncomp = 1, keepX = 22)
+```
+
+```{r loading coefficients in bladder.1, echo=FALSE, fig.cap="Loading coefficients from sPLS on bladder adjusted for age, sex, and BMI", out.width = '800'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_bladder_1.png")
+```
+
+<br/>
+<br/>
+
+Lambda = 26, proportion = 0.9
+```{r stability selection on bladder.2, echo=FALSE, fig.cap="Stability selection for sPLS on bladder adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/CalibrationPlot_bladder.2.png")
+```
+
+<br/>
+<br/>
+
+```{r selection proportion on bladder.2, echo=FALSE, fig.cap="Selection proportion for sPLS on bladder adjusted for age, sex, BMI and smoking", out.width = '1000'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/selection_proportions_bladder.2.png")
+```
+
+<br/>
+<br/>
+
+Use results from stability selection for sPLS, lambda = 26
+```{r running sPLS on bladder.2, echo=FALSE, eval=FALSE}
+x_bladder.2 <- bladder.2[,-1]
+y_bladder.2 <- bladder.2[,1]
+
+MysPLSDA_bladder.2 <- splsda(x_bladder.2, y_bladder.2, ncomp = 1, keepX = 26)
+```
+
+
+```{r loading coefficients in bladder.2, echo=FALSE, fig.cap="Loading coefficients from sPLS on bladder adjusted for age, sex, BMI and smoking", out.width = '800'}
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_bladder_2.png")
+```
+
+
+
+## Discussion
+### LASSO
+Lung cancer:
+
+* Selected variables attenuated after adjustment for smoking:
+  + Rented accommodation
+  + Coffee ≥4 cups
+  + <span style="color:blue">HDL cholesterol</span>
+  + Total protein
+* Selected variables strengthened after adjustment for smoking:
+  + <span style="color:blue">Average household income (31,000-51,999)</span>
+* Selected for both models
+  + <span style="color:blue">High education attainment</span>
+  + <span style="color:blue">Average household income (>52,000)</span>
+  + Maternal smoking around birth
+  + Cardiovascular
+  + Respiratory
+  + C reactive protein
+  + <span style="color:blue">Cholesterol</span>
+
+Bladder cancer:
+
+* Selected variables attenuated after adjustment for smoking:
+  + <span style="color:blue">High education attainment</span>
+  + Rented accommodation
+  + Parental history of COPD
+  + <span style="color:blue">HDL cholesterol</span>
+* Selected variables strengthened after adjustment for smoking:
+  + <span style="color:blue">Apolipoprotein A</span>
+  + SHBG
+  + <span style="color:blue">Testosterone</span>
+* Selected for both:
+  + <span style="color:blue">Cholesterol</span>
+
+Key points:
+
+* Sociodemographic factors associated with lung cancer but not with bladder cancer.
+* Parental history of COPD associated with bladder cancer through smoking.
+* Bladder cancer: Positive association SHBG but negative association with testosterone (?)
+
+**Questions**
+
+* Why is LASSO model with forced variables more stringent than denoised model?
+* How to report the three plots?
+  + Selection proportion -- order by variable groupings? or selection?
+  + AUC as a function of number of predictors included in model -- overlap models?
+
+### sPLS
+Lung cancer:
+
+* No. of variables to be selected stably:
+  + adjustment for age, sex, and BMI: 26
+  + adjustment for age, sex, BMI and smoking: 23
+* Selected variables attenuated after adjustment for smoking:
+  + Coffee ≥4 cups
+  + Always add salt to food
+  + Total protein
+  + Urea
+* Selected variables strengthened after adjustment for smoking:
+  + Parental history of lung cancer
+  + Having hypertension
+  + Apolipoprotein B
+  + Glucose
+
+
+Bladder cancer:
+* No. of variables to be selected stably:
+  + adjustment for age, sex, and BMI: 11
+  + adjustment for age, sex, BMI and smoking: 8
+* Selected variables attenuated after adjustment for smoking:
+  + Always add salt to food
+* Selected variables strengthened after adjustment for smoking:
+  + Take processed meat more than once a week
+  + PM 2.5 absorbance
+  + PM 10
+  + Parental history of CHD
+  + Alanine aminotransferase
+  + Calcium
+  + Phosphate
+  + SHBG
+  + Urea
+
+
+### Plan
+
+Report (Results section) outline:
+
+1. Descriptive statistics and univariate analysis
+    i. Table 1
+    ii. Manhattan plots
+    iii. Forest plots
+    iv. Scatter plots
+2. Multivariate analysis:
+    i. LASSO (OR, Selection proportion and AUC)
+    ii. **gPLS, sgPLS** (Loading coefficients and Selection proportion)
+3. **Targeted analyses by lung cancer subtypes** (If the time allows)
+    i. Run LASSO (?)
+4. Sensitivity analysis
+    i. Stratify by time-to-diagnosis
+    ii. Stratify by age at diagnosis
+
+Next steps are in **bold**
+
