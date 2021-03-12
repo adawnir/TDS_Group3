@@ -1,5 +1,5 @@
-# Manhattan Plot
-# Ines losing her goddamn mind Feb 18
+# Manhattan Plots
+# Created by Ines on Feb 18, revisted Feb 25
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"

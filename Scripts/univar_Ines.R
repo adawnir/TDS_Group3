@@ -129,3 +129,13 @@ p$bladder_confound_smoking=c(rep(NA,4),unlist(pvalues)) # Change # of NA dependi
 
 # Export p-values
 write.csv(p, file = "../Exports/univar_pval_Ines.csv") # Change file name
+
+### P values of covariate categories ----
+
+fit <- glm(case_status~mat_smoke, data=lung_data, family="binomial"(link=logit))
+summary(fit)
+
+fit2 <- glm(case_status~mat_smoke, data=bladder_data, family="binomial"(link=logit))
+summary(fit2)
+
+

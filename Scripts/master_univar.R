@@ -1,29 +1,36 @@
-### TDS Project -- Univariate logistic regression analysis (Forest plot and Manhattan plot)
-### Programme created by Rin Wada on 25 Feb 2021
+### TDS Project -- Univariate logistic regression analysis -- Parallelisation
+### Programme created by Rin Wada on 26 Feb 2021 reviewed on 8 March
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"
 setwd(project_path)
 
-library(data.table)
 library(tidyverse)
+library(parallel)
 
 # Load new datasets
 biomarkers=readRDS("../Results/biomarker_imp_master.rds")
-covar=readRDS("../Results/covar_master.rds")
+covar=readRDS("../Results/covar_models.rds")
 cc=readRDS("../Results/case_control.rds")
 
-# Restructure data - case/control status in first column, confounding factors is subsequent
+# Restructure data - case/control status in first column
+colnames(covar)
 covar = covar %>%
-  select((eid:sex), bmi, smoking,(ethnic:hh_income),(total_meat:alcohol),
+  select((eid:sex), bmi,smoking,(ethnic:hh_income),(phys_score:alcohol),
          (mat_smoke:autoimmune))
 
 mydata=cc %>% select(eid, case_status) %>%
   left_join(covar, by="eid") %>%
-  select((eid:sex), bmi, smoking,(ethnic:hh_income),(total_meat:alcohol),
-         (mat_smoke:autoimmune)) %>%
   left_join(biomarkers, by="eid") %>%
   select(-eid)
+
+colnames(mydata)
+# Scale biomarkers and continuous environmental variables
+# (all continuous variables that are not composite scores)
+mydata[c(27:32,49:76)]=scale(mydata[c(27:32,49:76)])
+
+summary(mydata) # check mean = 0
+
 str(mydata) # Ensure categorical variables are coded as factors and continuous numerical
 
 # Separate by case
@@ -33,87 +40,82 @@ bladder_data=mydata[mydata$case_status!="lung",]
 lung_data$case_status = as.factor(ifelse(as.character(lung_data$case_status) == "control",0,1))
 bladder_data$case_status = as.factor(ifelse(as.character(bladder_data$case_status) == "control",0,1))
 
-# Make empty table for pvalues (per category), odds ratio and 95% CI
-x=model.matrix(~., mydata[,-c(1:4)])[,-1] # Remove base confounders
-dim(x)
-# four columns for p, or, upper ci and lower ci
-# multiplied by four for each lung/bladder and model 1/model 2
-forest=matrix(0, nrow=ncol(x), ncol=4*4) %>% data.frame()
-rownames(forest)=colnames(x)
-cases=c("lung", "bladder")
-colnames(forest)=paste0(rep(c("p","or","u95","l95"),times=4),"_",
-                        rep(cases,each=4),"_",rep(1:2,each=4))
-# four columns for pfor lung/bladder and model 1/model 2
-manhattan=matrix(0, nrow=ncol(mydata), ncol=4) %>% data.frame()
-rownames(manhattan)=colnames(mydata)
-colnames(manhattan)=paste0("p","_",rep(cases,each=2),"_",1:2)
-
 ### Logistic regression----
-# Models
-c=1
-i=7
-for (c in 1:length(cases)){
-  case=cases[c]
-  print(case)
-  dat=eval(parse(text=paste0(case,"_","data")))
-  p.1=NULL
-  or.1=NULL
-  conf95.1=NULL
-  pvar.1=NULL
-  p.2=c(rep(NA,2))
-  or.2=c(rep(NA,2))
-  conf95.2=matrix(0,nrow=3,ncol=2)
-  pvar.2=c(NA)
-  for (i in 5:ncol(dat)){
-    var_name.1=colnames(dat)[i]
-    print(var_name.1)
-    model1 = glm(paste0("case_status~age_baseline + sex + bmi +", var_name.1),
-                 data = dat, family="binomial")
-    model0.1 = glm(case_status~age_baseline + sex + bmi,
-                   data = dat[complete.cases(dat[,var_name.1]),], family="binomial")
-    tmp.1=exp(tail(coef(model1),-8))
-    or.1=append(or.1,tmp.1)
-    conf95.1=rbind(conf95.1,exp(tail(confint(model1),-8)))
-    if(is.numeric(dat[,i])){
-      tmp.1=summary(model1)$coefficients[-c(1:8),4]
-      p.1=append(p.1,tmp.1)
-      pvar.1=append(pvar.1,tmp.1)
-    } else {
-      p.1=append(p.1,head(summary(model1)$coefficients,-8)[-1,4])
-      pvar.1=append(pvar.1,anova(model0.1,model1,test = 'Chisq')$`Pr(>Chi)`[2])
-    }
-    if(i == 5){
-      next
-    }
-    var_name.2=colnames(dat)[i]
-    print(var_name.2)
-    model2 = glm(paste0("case_status~age_baseline + sex + bmi + smoking +", var_name.2),
-                 data = dat, family="binomial")
-    model0.2 = glm(case_status~age_baseline + sex + bmi + smoking,
-                   data = dat[complete.cases(dat[,var_name.2]),], family="binomial")
-    tmp.2=exp(tail(coef(model2),-10))
-    or.2=append(or.2,tmp.2)
-    conf95.2=rbind(conf95.2,exp(tail(confint(model2),-10)))
-    if(is.numeric(dat[,i])){
-      tmp.2=summary(model2)$coefficients[-c(1:10),4]
-      p.2=append(p.2,tmp.2)
-      pvar.2=append(pvar.2,tmp.2)
-    } else {
-      p.2=append(p.2,tail(summary(model2)$coefficients,-10)[,4])
-      pvar.2=append(pvar.2,anova(model0.2,model2,test = 'Chisq')$`Pr(>Chi)`[2])
-    }
+# Get beta coefficients, standard errors, glm p-values and anova p-values
+foo = function(i, dat, smoking = FALSE){
+  var_name=colnames(dat)[i]
+  print(var_name)
+  confound=c("age_baseline","sex", "bmi")  # Change confounders accordingly
+  if(smoking==TRUE){
+    confound=append(confound,"smoking")
   }
-  forest[,paste0("p_",case,"_1")]=p.1
-  forest[,paste0("p_",case,"_2")]=p.2
-  forest[,paste0("or_",case,"_1")]=or.1
-  forest[,paste0("or_",case,"_2")]=or.2
-  forest[,paste0("u95_",case,"_1")]=conf95.1[,2]
-  forest[,paste0("u95_",case,"_2")]=conf95.2[,2]
-  forest[,paste0("l95_",case,"_1")]=conf95.1[,1]
-  forest[,paste0("l95_",case,"_2")]=conf95.2[,1]
-  mahattan[,paste0("p_",case,"_1")]=pvar.1
-  mahattan[,paste0("p_",case,"_2")]=pvar.2
+  model = glm(as.formula(paste("case_status",paste(c(var_name,confound),collapse="+"),sep="~")),
+              data = dat, family="binomial")
+  model0 = glm(as.formula(paste("case_status",paste(confound,collapse="+"),sep="~")),
+               data = dat[complete.cases(dat[,i]),], family="binomial")
+  summary_table=summary(model)$coefficients
+  res = list(summary_table[grepl(paste0("^",var_name),rownames(summary_table)),-3],
+             anova(model0, model, test = 'Chisq')$`Pr(>Chi)`[2])
+  names(res) = c('glm_output', 'anova_output')
+  return(res)
 }
 
-saveRDS(forest,"../Results/forest_data.rds")
-saveRDS(manhattan,"../Results/manhattan_data.rds")
+no_cores=detectCores()-1
+cl <- makeCluster(no_cores) 
+clusterExport(cl, c("lung_data", "foo"))
+lung_res.1=parLapply(cl=cl, 5:ncol(lung_data), foo, dat=lung_data)
+names(lung_res.1)=colnames(lung_data)[5:ncol(lung_data)]
+lung_res.2=parLapply(cl=cl, 6:ncol(lung_data), foo, dat=lung_data, smoking=T)
+names(lung_res.2)=colnames(lung_data)[6:ncol(lung_data)]
+stopCluster(cl)
+
+no_cores=detectCores()-1
+cl <- makeCluster(no_cores) 
+clusterExport(cl, c("bladder_data", "foo"))
+bladder_res.1=parLapply(cl=cl, 5:ncol(bladder_data), foo, dat=bladder_data)
+names(bladder_res.1)=colnames(bladder_data)[5:ncol(bladder_data)]
+bladder_res.2=parLapply(cl=cl, 6:ncol(bladder_data), foo, dat=bladder_data, smoking=T)
+names(bladder_res.2)=colnames(bladder_data)[6:ncol(bladder_data)]
+stopCluster(cl)
+
+ifelse(dir.exists("../Results/univ"),"",dir.create("../Results/univ"))
+saveRDS(lung_res.1, "../Results/univ/univ_lung_res_1.rds")
+saveRDS(lung_res.2, "../Results/univ/univ_lung_res_2.rds")
+saveRDS(bladder_res.1, "../Results/univ/univ_bladder_res_1.rds")
+saveRDS(bladder_res.2, "../Results/univ/univ_bladder_res_2.rds")
+
+### Make data for forest plot ----
+# Create empty rows for smoking variable
+smokingNA=matrix(NA, nrow=4, ncol=4)
+rownames(smokingNA)=rownames(lung_res.1[[1]]$glm_output)
+
+foo=function(x, smoking = FALSE){
+  name=gsub("_res","",substitute(x))
+  # Extract first element of nest list and rbind for each model results
+  table=do.call("rbind", lapply(x, `[[`, 1))
+  tmp=apply(table, 1, function(y) exp(y[1]+c(0,-1,1)*qnorm(0.975)*y[2]))
+  res=t(tmp)
+  res=cbind(res,-log10(table[,3]))
+  if(smoking==T){
+    # Add NA to model 2 tables
+    res=rbind(smokingNA,res)
+  }
+  # Rename columns
+  colnames(res)=paste0(c("or_","l95_","u95_","logp_"),name)
+  return(res)
+}
+# cbind into one table
+forest=cbind(foo(lung_res.1),foo(lung_res.2, smoking = T),
+             foo(bladder_res.1),foo(bladder_res.2, smoking = T))
+saveRDS(forest, "../Results/forest_plot.rds")
+
+### Make data set for Manhattan plot ----
+manhattan=cbind(do.call("rbind", lapply(lung_res.1, `[[`, 2)),
+                c(NA, do.call("rbind", lapply(lung_res.2, `[[`, 2))),
+                do.call("rbind", lapply(bladder_res.1, `[[`, 2)),
+                c(NA, do.call("rbind", lapply(bladder_res.2, `[[`, 2))))
+# Change to log scale
+manhattan=-log10(manhattan)
+# Change column name
+colnames(manhattan)=paste0(rep(c("lung","bladder"),each=2),".",1:2)
+saveRDS(manhattan, "../Results/manhattan_plot.rds")
