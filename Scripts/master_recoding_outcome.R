@@ -95,10 +95,10 @@ icd9_cancer=c(paste0(140:149), # lip, oral cavity, larynx
 myhes=readRDS("../Results/hes_all_cancer.rds")
 
 # ICD codes for cases
-icd10_lung=c(paste0("C",33:34), paste0("D02.",1:2)) # lung
-icd10_bladder=c(paste0("C",67), paste0("D09.",0)) # bladder
-icd9_lung=c("162","231.1","231.2") # lung
-icd9_bladder=c("188","233.7") # bladder
+icd10_lung=c(paste0("C",33:34), paste0("D02",1:2)) # lung
+icd10_bladder=c(paste0("C",67), paste0("D09",0)) # bladder
+icd9_lung=c("162","2311","2312") # lung
+icd9_bladder=c("188","2337") # bladder
 
 # Extract date and age at baseline
 sum(is.na(mydata$X53.0.0)) # No missing

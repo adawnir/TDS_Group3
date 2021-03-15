@@ -211,7 +211,21 @@ summary(covar[,c("num_walk","num_mod","num_vig")])
 
 # Run PCA
 mypca <- prcomp(~., data=tmp[,-1], scale.=T, na.action = na.omit)
-summary(mypca)$importance[2,] # 58% of information explained by PC1
+# Scree plot
+out=summary(mypca)
+ev=out$importance[2,]
+ev
+cum_ev=out$importance[3,]
+dir.create("../Figures/composite")
+pdf("../Figures/composite/phys_score_ev.pdf", width=7, height=7)
+par(mar=c(5,5,1,1))
+plot(cum_ev, pch=19, col="navy", type="b", ylim=c(0,1),
+     xaxt="n", yaxt="n",
+     ylab="Percentage of explained variance", xlab="Number of components")
+axis(1, at=c(1:3),labels=c(1:3))
+axis(2, at=seq(0,1,0.2),labels=seq(0,100,20))
+points(ev, pch=19, col="tomato", type="b")
+dev.off()
 res=mypca$x # scores
 dim(res)
 # Make complete case data to find eids
@@ -249,8 +263,8 @@ table(mydata$pork,useNA = "ifany")
 tmp=mydata %>% select(eid, o_fish,no_fish,poultry,pro_meat,beef,lamb,pork) %>%
   na_if("Do not know") %>% na_if("Prefer not to answer") %>%
   mutate_at(vars(-eid),
-            function(x) ifelse(is.na(x)|x%in%c("Never","Less than once a week","Once a week"),
-                               x,"More than once a week"))
+            function(x) as.factor(ifelse(is.na(x)|x%in%c("Never","Less than once a week","Once a week"),
+                               x,"More than once a week")))
 summary(tmp)
 covar[,c("o_fish","no_fish","poultry","pro_meat","beef","lamb","pork")]=tmp[,c("o_fish","no_fish","poultry","pro_meat","beef","lamb","pork")]
 
@@ -269,6 +283,19 @@ total_meat.eig=readRDS("../Results/MCA/total_meat.eig.rds")
 total_meat.ind=readRDS("../Results/MCA/total_meat.ind.rds")
 # Show variance explained by component
 head(total_meat.eig)
+# Scree plot
+ev=total_meat.eig[,2]
+ev
+cum_ev=total_meat.eig[,3]
+pdf("../Figures/composite/tot_meat_ev.pdf", width=7, height=7)
+par(mar=c(5,5,1,1))
+plot(cum_ev, pch=19, col="navy", type="b", ylim=c(0,100),
+     xaxt="n", yaxt="n",
+     ylab="Percentage of explained variance", xlab="Number of components")
+axis(1, at=c(1:35),labels=c(1:35))
+axis(2, at=seq(0,100,20),labels=seq(0,100,20))
+points(ev, pch=19, col="tomato", type="b")
+dev.off()
 # Show individual scores
 res=total_meat.ind$coord[,1]
 summary(res)
@@ -291,10 +318,23 @@ white_meat.eig=readRDS("../Results/MCA/white_meat.eig.rds")
 white_meat.ind=readRDS("../Results/MCA/white_meat.ind.rds")
 # Show variance explained by component
 head(white_meat.eig)
+# Scree plot
+ev=white_meat.eig[,2]
+ev
+cum_ev=white_meat.eig[,3]
+pdf("../Figures/composite/whi_meat_ev.pdf", width=7, height=7)
+par(mar=c(5,5,1,1))
+plot(cum_ev, pch=19, col="navy", type="b", ylim=c(0,100),
+     xaxt="n", yaxt="n",
+     ylab="Percentage of explained variance", xlab="Number of components")
+axis(1, at=c(1:15),labels=c(1:15))
+axis(2, at=seq(0,100,20),labels=seq(0,100,20))
+points(ev, pch=19, col="tomato", type="b")
+dev.off()
 # Show individual scores
 res=white_meat.ind$coord[,1]
 summary(res)
-dim(res)
+length(res)
 # Make complete case data to find eids
 addNAback=tmp[complete.cases(tmp[,c("o_fish","no_fish","poultry")]),] %>%
   cbind(.,res)
@@ -311,10 +351,23 @@ red_meat.eig=readRDS("../Results/MCA/red_meat.eig.rds")
 red_meat.ind=readRDS("../Results/MCA/red_meat.ind.rds")
 # Show variance explained by component
 head(red_meat.eig)
+# Scree plot
+ev=red_meat.eig[,2]
+ev
+cum_ev=red_meat.eig[,3]
+pdf("../Figures/composite/red_meat_ev.pdf", width=7, height=7)
+par(mar=c(5,5,1,1))
+plot(cum_ev, pch=19, col="navy", type="b", ylim=c(0,100),
+     xaxt="n", yaxt="n",
+     ylab="Percentage of explained variance", xlab="Number of components")
+axis(1, at=c(1:15),labels=c(1:15))
+axis(2, at=seq(0,100,20),labels=seq(0,100,20))
+points(ev, pch=19, col="tomato", type="b")
+dev.off()
 # Show individual scores
 res=red_meat.ind$coord[,1]
 summary(res)
-dim(res)
+length(res)
 # Make complete case data to find eids
 addNAback=tmp[complete.cases(tmp[,c("beef","lamb","pork")]),] %>%
   cbind(.,res)
@@ -343,7 +396,20 @@ summary(covar[,c("cook_veg","salad","fresh_fru","dried_fru")])
 
 # Run PCA
 mypca <- prcomp(~., data=tmp[,-1], scale.=T, na.action = na.omit)
-summary(mypca)$importance[2,]
+# Scree plot
+out=summary(mypca)
+ev=out$importance[2,]
+ev
+cum_ev=out$importance[3,]
+pdf("../Figures/composite/tot_fru_veg_ev.pdf", width=7, height=7)
+par(mar=c(5,5,1,1))
+plot(cum_ev, pch=19, col="navy", type="b", ylim=c(0,1),
+     xaxt="n", yaxt="n",
+     ylab="Percentage of explained variance", xlab="Number of components")
+axis(1, at=c(1:4),labels=c(1:4))
+axis(2, at=seq(0,1,0.2),labels=seq(0,100,20))
+points(ev, pch=19, col="tomato", type="b")
+dev.off()
 res=mypca$x # scores
 dim(res)
 # Make complete case data to find eids

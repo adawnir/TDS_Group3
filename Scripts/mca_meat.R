@@ -22,7 +22,7 @@ table(mydata$beef,useNA = "ifany")
 table(mydata$lamb,useNA = "ifany")
 table(mydata$pork,useNA = "ifany")
 
-# Replace "Do not know"
+# Replace "Do not know" and "Prefer not to answer"
 covar=mydata %>% select(o_fish,no_fish,poultry,pro_meat,beef,lamb,pork) %>%
   na_if("Do not know") %>% na_if("Prefer not to answer")
 
