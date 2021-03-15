@@ -29,7 +29,7 @@ variable_cat=c(rep("Sociodemographic",8),
                rep("Medical", 15), 
                rep("Biomarkers", 28))
 models=c("Base model", "Model adjusted on smoking status")
-mycolours==darken(mycolours,amount=0.2)
+mycolours=darken(c("navy","tomato","gold"),amount=0.2)
 xseq=seq(1,nrow(manhat))
 
 # Lung

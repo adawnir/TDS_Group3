@@ -1,4 +1,4 @@
-### TDS Project -- Denoise Data (RUN ON HPC)
+### TDS Project -- One-hot encoding and Denoise Data (RUN ON HPC)
 ## Programme created by Rin Wada on 2 March
 
 rm(list=ls())
@@ -7,8 +7,6 @@ setwd(project_path)
 
 ## Load packages
 library(tidyverse)
-library(glmnet)
-library(caret)
 
 # Load dataset
 multi.0=readRDS("../Results/multivar_data.rds")

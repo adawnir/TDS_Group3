@@ -22,9 +22,7 @@ library(kableExtra)
 library(ggplot2)
 ```
 
-# TDS Group 3
-
-## Inclusion exclusion criteria
+# Inclusion exclusion criteria
 Definitions:
 
 * Cases: Participants diagnosed with lung/bladder cancer after date of attending assessment centre, who were not diagnosed with any other cancer before/on the same day of the lung/bladder cancer diagnosis.
@@ -49,9 +47,48 @@ DiagrammeR::grViz("digraph {
   height = 500)
 ```
 
+# Composite scores
+Composite scores were computed for Physical activity, Total meat intake, Red meat intake, White meat intake and Total fruit/veg intake.
 
+Physical activity:
 
-## Table 1
+* Number of days/week walking 10+ min
+* Number of days/week moderate physical activity 10+ min
+* Number of days/week vigorous physical activity 10+ min
+
+Total fruit/veg intake:
+
+* Cooked vegetable intake
+* Fresh vegetable/salad intake
+* Fresh fruit intake
+* Drief fruit intake
+
+Total meat intake:
+
+* Processed meat intake
+* Beef intake - Red
+* Pork intake - Red
+* Lamb intake - Red
+* Poultry intake - White
+* Oily fish intake - White
+* Non-oily fish intake - White
+
+PCA was performed for numerical variables (physical activity and total fruit/veg intake). The first component was used as the composite score.
+
+* Physical activity: PC1 58% variance explained
+* Total fruit/veg intake: PC1 41% variance explained
+
+Multiple Correspondence Analysis (MCA) was performed for categorical variables (mean intake). The first component was used as the composite score.
+
+* Total meat intake: Dim1 9.6% variance explained
+* Red meat intake: Dim1 11.9% variance explained
+* White meat intake: Dim1 13.3% variance explained
+
+# Table 1
+
+Student's t-test used to compare continuous variables, chi-squared test used to compare categorical variables. There is a
+separate table for biomarkers and also a table to appear in the supplementary material with variables such as the composite
+scores described above. Any p values <0.001 are not printed, but p values below the Bonferroni threshold are emboldened. 
 
 ```{r table1, eval=TRUE, echo=FALSE}
 library(flextable)
@@ -64,48 +101,193 @@ knitr::knit_print(tab1)
 
 ```
 
-## Univariate Analysis
+# Univariate Analysis
+Continuous variables were scaled prior to running logistic regression models to help visualize confidence intervals.
 
 ```{r manhattan lung, fig.cap="Manhattan", echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/manhattan_lung_wk8.pdf")
 ```
 
+Significant for both models:
+
+Sociodemographic:
+
+* Townsend
+* Employment
+* Education
+* Type of Accommodation
+* Own/Rent status
+* Household income
+
+Health risk:
+
+* Sleep
+* Processed meat
+* Total Fruit & Veg
+* Salt intake
+* Tea 
+* Coffee
+* Alcohol
+
+Environment:
+
+* Maternal smoking
+* NO2
+* NOx
+* PM2.5
+
+Medical:
+
+* Number of medicines
+* Parent COPD
+* Parent Lung Cancer
+* Cardiovascular
+* Hypertension
+* Respiratory
+
+Biomarkers:
+
+* Albumin
+* Alkaline Phosphatase
+* Apolipoprotein A
+* Apolipoprotein B
+* C Reactive Protein
+* Cholesterol
+* Cystatin C
+* Gamma glutamyltransferase
+* Glycated haemoglobin: HbA1c
+* HDL Cholesterol
+* IGF.1
+* LDL Direct
+* Total bilirubin
+* Vitamin D
+
 ```{r manhattan bladder, fig.cap="Manhattan", echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/manhattan_bladder_wk8.pdf")
 ```
 
+Significant for both models:
+diabetes, HDL cholesterol.
+
 ```{r scatter pconf, fig.cap="P Values", echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders.pdf")
+```
+
+A snapshot of all relevant p values.
+In this limited graph, we see that diabetes is significant for both models when not adjusted for smoking.
+
+```{r scatter bladder pconf, fig.cap="P Values", echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders_bladder.pdf")
+```
+
+Diabetes, HDL cholesterol, and education:
+
+* Significant for bladder cancer is marked only
+* All also happen to be significant for lung cancer
+
+```{r scatter lung pconf, fig.cap="P Values", echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_confounders_lung.pdf")
 
 ```
+All variables significant for lung cancer are marked.
+We see a number are significant for lung cancer and not bladder cancer.
 
 ```{r scatter psmoke, fig.cap="P Values",echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking.pdf")
+```
+
+Adjusted for smoking, only HDL cholesterol is still significant. Diabetes is no longer significant for both models.
+
+
+```{r scatter bladder psmoke, fig.cap="P Values",echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking_bladder.pdf")
+```
+
+We see that diabetes is significant for bladder cancer and not lung when adjusted for smoking.
+
+```{r scatter lung psmoke, fig.cap="P Values",echo=FALSE, out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/scatter_pval_smoking_lung.pdf")
 ```
 
-```{r forest wk7, fig.cap="Forest", echo=FALSE, out.width='2000'}
+Here there are much fewer significant markers, notably diabetes and education are less significant. 
+The scale of the graph is also much smaller - meaning some effect has been taken away by adjusting for smoking.
+The significance of deprivation indicators has halved.
+
+```{r forest, fig.cap="Forest", echo=FALSE, out.width='2000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+```
+
+Some ORs go off scale here, or we can not see the CIs.
+This is due to varied scale of confidence intervals.
+I tried free_y, it was a disaster.
+
+The ORs that go off scale are connected to smoking status.
+
+```{r forest zoom out, fig.cap="Forest Zoom out", echo=FALSE, out.width='2000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8.pdf")
+```
+
+This forest plot is zoomed out. We lose information visually on the CIs of the ORs, but we can still see the sharp contrast of the smoking variables in the middle, and how sociodemographic variables are reduced in effect when we control for smoking.
+
+```{r forest plotrix, fig.cap="Forest Plotrix", echo=FALSE, out.width='2000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_plotrix_h.pdf")
+```
+
+Here I'm just playing around, overlaying all of the models on top of one graph.
+What we can see is that often the models that cluster together are usually the ones adjusted for smoking, rather than clustering by cancer type.
+
+-> How can we investigate this further?
+
+```{r forest plotrix v, fig.cap="Forest Plotrix", echo=FALSE, out.width='2000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_plotrix_v.pdf")
 
 ```
 
-## Sensitivity Analysis by Age at Diagnosis and Time to Diagnosis
-*TO BE COMPLETED*
+This looks terrible and I'm stuck on figuring out how to plot vertical confidence intervals. 
+
+-> Any advice?
+
+# Sensitivity Analysis by Age at Diagnosis and Time to Diagnosis
+
+*What I did*:
+
+* Subset data into:
+  + *below* median age at diagnosis + all controls
+  + *above* median age at diagnosis + all controls
+* ran glm & anova on these:
+  + Beta values for case status vs. full population
+  + CIs
+  + log p values
+* Compare groups:
+  + Are betas significantly different?
+  + Do the same relationships occur in all models?
+  + Bref: main difference seems to be as a result of smoking, not as a result of age at diagnosis
+  + (models not adjusted for smoking vs adjusted for smoking cluster together)
+  + The relationships diverge more in the lung model vs. the bladder model because of smoking
+  + See forest plot
+* Questions:
+  + Should I be doing chi squared tests of proportions between the two groups?
+  + Is there another way to run sensitivity analysis/compare the groups?
+* To do further:
+  + format: model names
+  + compare full model with split models (issues with new variables here)
+  + Summarize any potential differences in a table/figure
+    
 ```{r age_diag_forest, fig.cap="Age at Diagnosis Analysis", echo=FALSE, out.width='2000'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/age_diag_lung_wk8.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/age_diag_bladder_wk8.pdf")
 ```
 
 ```{r time_diag_forest, fig.cap="Time to Diagnosis Analysis", echo=FALSE, out.width='2000'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/forest_wk8_zoom.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/time_diag_lung_wk8.pdf")
+knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/time_diag_bladder_wk8.pdf")
 ```
 
-## LASSO Logistic Regression
+
+* What we see in our analyses is that the main effect is due to *smoking*, not necessarily due to cancer type or age at or time to diagnosis.
+* How do we verify/prove this in a math way?
+
+# LASSO Logistic Regression
 Models:
 
 * 1 = Base model
@@ -123,9 +305,20 @@ Four models run for each outcome (lung/bladder cancer):
 * One Stability Selection LASSO logistic regression model was run for each data set.
 * All models calibrated based on binomial deviance using 50% subsample (randomly selected while taking case/control status into account).
 
-### Denoised 
+## Denoised 
 
-#### Mean Odds Ratios
+### Calibration
+*Lung* 
+```{r lasso calib lung denoise, echo=FALSE, fig.cap="Lung: Calibration of lambda and pi (Top = base model; Bottom = model adjusted for smoking)", fig.show='hold',fig.align='center', out.width='1000'}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_lung.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_lung.2.pdf"))
+```
+
+*Bladder* 
+```{r lasso calib bladder denoise, echo=FALSE, fig.cap="Bladder: Calibration of lambda and pi (Top = base model; Bottom = model adjusted for smoking)", fig.show='hold',fig.align='center', out.width='1000'}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_bladder.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_bladder.2.pdf"))
+```
+
+### Mean Odds Ratios
 *Lung* 
 ```{r lasso OR lung, echo=FALSE, fig.cap="Lung: Mean Odds Ratio", out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_lung_denoise.pdf")
@@ -136,41 +329,60 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_bladder_denoise.pdf")
 ```
 
-#### Selection Proportion
-Dashed red line threshold = max(pi[base model], pi[adjusted model])
+### Selection Proportion
+Dashed red line: $threshold = max(\hat{\pi}_{base}, \hat{\pi}_{adjusted})$
+
+
 *Lung* 
+
 ```{r lasso selprop lung, echo=FALSE, fig.cap="Lung: Selection Proportion", out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_lung_denoise.pdf")
 ```
 
-*Bladder* 
-```{r lasso selprop bladder, echo=FALSE, fig.cap="Bladder: Selection Proportion", out.width='1000'}
+*Bladder*
+
+```{r lasso selprop bladder, echo=FALSE,fig.cap="Bladder: Selection Proportion",out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_bladder_denoise.pdf")
 ```
 
-#### Prediction Performance
-*Lung* 
-```{r lasso auc lung.1, echo=FALSE, fig.cap="Lung: Base model AUC", out.width='500'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.1.pdf")
-```
+**Checking consistency in sign of the beta coefficients for the variables with high selprop**
 
-```{r lasso auc lung.2, echo=FALSE, fig.cap="Lung: Adjusted model AUC", out.width='500'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.2.pdf")
+
+*Lung* 
+```{r lasso selprop check lung.1 lung.2, echo=FALSE, fig.cap="Lung: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_lung.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_lung.2.pdf"))
 ```
 
 *Bladder* 
-```{r lasso auc bladder.1, echo=FALSE, fig.cap="Bladder: Base model AUC", out.width='500'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.1.pdf")
-```
-
-```{r lasso auc bladder.2, echo=FALSE, fig.cap="Bladder: Adjusted model AUC", out.width='500'}
-knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.2.pdf")
+```{r lasso selprop check bladder.1 bladder.2, echo=FALSE, fig.cap="Bladder: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_bladder.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_bladder.2.pdf"))
 ```
 
 
-### Forced (using Penality.Factor) 
+### Prediction Performance
+*Lung* 
+```{r lasso auc lung.1 lung.2, echo=FALSE, fig.cap="Lung: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.2.pdf"))
+```
 
-#### Mean Odds Ratios
+*Bladder* 
+```{r lasso auc bladder.1 and bladder.2, echo=FALSE, fig.cap="Bladder: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.2.pdf"))
+```
+
+## Forced (using Penalty.Factor) 
+### Calibration
+*Lung* 
+```{r lasso calib lung force, echo=FALSE, fig.cap="Lung: Calibration of lambda and pi (Top = base model; Bottom = model adjusted for smoking)", fig.show='hold',fig.align='center', out.width='1000'}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_lung.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_lung.2.pdf"))
+```
+
+*Bladder* 
+```{r lasso calib bladder force, echo=FALSE, fig.cap="Bladder: Calibration of lambda and pi (Top = base model; Bottom = model adjusted for smoking)", fig.show='hold',fig.align='center', out.width='1000'}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_bladder.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/out_bladder.0.2.pdf"))
+```
+
+### Mean Odds Ratios
 *Lung* 
 ```{r lasso OR lung force, echo=FALSE, fig.cap="Lung: Mean Odds Ratio", out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_lung_force.pdf")
@@ -181,7 +393,7 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/OR_bladder_force.pdf")
 ```
 
-#### Selection Proportion
+### Selection Proportion
 *Lung* 
 ```{r lasso selprop lung force, echo=FALSE, fig.cap="Lung: Selection Proportion", out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_lung_force.pdf")
@@ -191,9 +403,33 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 ```{r lasso selprop bladder force, echo=FALSE, fig.cap="Bladder: Selection Proportion", out.width='1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_bladder_force.pdf")
 ```
-## sPLS
-### lung cancer
-#### Calibration
+
+**Checking consistency in sign of the beta coefficients for the variables with high selprop**
+*Lung* 
+```{r lasso selprop check lung.0, echo=FALSE, fig.cap="Lung: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_lung.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_lung.0.2.pdf"))
+```
+
+*Bladder* 
+```{r lasso selprop check bladder.0, echo=FALSE, fig.cap="Bladder: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_bladder.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/selprop_check_bladder.0.2.pdf"))
+```
+
+
+### Prediction Performance
+*Lung* 
+```{r lasso auc lung.0, echo=FALSE, fig.cap="Lung: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_lung.0.2.pdf"))
+```
+
+*Bladder* 
+```{r lasso auc bladder.0, echo=FALSE, fig.cap="Bladder: Base model (left) and Adjusted model (right) AUC", fig.show='hold',fig.align='center',out.width="50%"}
+knitr::include_graphics(c("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.0.1.pdf","/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Figures/lasso/auc_bladder.0.2.pdf"))
+```
+
+# sPLS
+## lung cancer
+### Calibration
 ```{r sPLS calibration on lung, echo=FALSE, eval = FALSE, out.width='1000'}
 
 # load data
@@ -238,7 +474,7 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 <br/>
 <br/>
 
-#### Stability selection
+### Stability selection
 
 Lambda = 36, proportion = 0.9
 ```{r stability selection on lung.1, echo=FALSE, fig.cap="Stability selection for sPLS on lung adjusted for age, sex, and BMI", out.width = '1000'}
@@ -296,13 +532,13 @@ y_lung.2 <- lung.2[,1]
 MysPLSDA_lung.2 <- splsda(x_lung.2, y_lung.2, ncomp = 1, keepX = 38)
 ```
 
-```{r loading coefficients in lung.2, echo=FALSE, fig.cap="Loading coefficients from sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '800'}
+```{r loading coefficients on lung.2, echo=FALSE, fig.cap="Loading coefficients from sPLS on lung adjusted for age, sex, BMI and smoking", out.width = '800'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_lung_2.png")
 ```
 
 
-### bladder cancer
-#### Calibration
+## bladder cancer
+### Calibration
 ```{r sPLS calibration on bladder, echo=FALSE, eval = FALSE, out.width='1000'}
 # load data
 bladder.1 <- readRDS("../Results/denoised/bladder.1_denoised.rds")
@@ -361,7 +597,7 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 <br/>
 <br/>
 
-#### Stability selection
+### Stability selection
 Lambda = 22, proportion = 0.9
 ```{r stability selection on bladder.1, echo=FALSE, fig.cap="Stability selection for sPLS on bladder adjusted for age, sex, and BMI", out.width = '1000'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/CalibrationPlot_bladder.1.png")
@@ -387,7 +623,7 @@ y_bladder.1 <- bladder.1[,1]
 MysPLSDA_bladder.1 <- splsda(x_bladder.1, y_bladder.1, ncomp = 1, keepX = 22)
 ```
 
-```{r loading coefficients in bladder.1, echo=FALSE, fig.cap="Loading coefficients from sPLS on bladder adjusted for age, sex, and BMI", out.width = '800'}
+```{r loading coefficients on bladder.1, echo=FALSE, fig.cap="Loading coefficients from sPLS on bladder adjusted for age, sex, and BMI", out.width = '800'}
 knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_Group3/PLS_plots/sPLS_loading_bladder_1.png")
 ```
 
@@ -424,45 +660,43 @@ knitr::include_graphics("/rds/general/project/hda_students_data/live/Group3/TDS_
 
 
 
-## Discussion
-### LASSO
+# Discussion
+## LASSO
 Lung cancer:
 
 * Selected variables attenuated after adjustment for smoking:
   + Rented accommodation
-  + Coffee ≥4 cups
-  + <span style="color:blue">HDL cholesterol</span>
-  + Total protein
 * Selected variables strengthened after adjustment for smoking:
+  + Townsend deprivation index
   + <span style="color:blue">Average household income (31,000-51,999)</span>
 * Selected for both models
   + <span style="color:blue">High education attainment</span>
   + <span style="color:blue">Average household income (>52,000)</span>
-  + Maternal smoking around birth
+  + Parent history of COPD
+  + Number of medication (>1)
   + Cardiovascular
   + Respiratory
+  + Alkaline phosphatase
   + C reactive protein
   + <span style="color:blue">Cholesterol</span>
 
 Bladder cancer:
 
-* Selected variables attenuated after adjustment for smoking:
-  + <span style="color:blue">High education attainment</span>
-  + Rented accommodation
-  + Parental history of COPD
-  + <span style="color:blue">HDL cholesterol</span>
 * Selected variables strengthened after adjustment for smoking:
-  + <span style="color:blue">Apolipoprotein A</span>
-  + SHBG
-  + <span style="color:blue">Testosterone</span>
+  + Close to major road
 * Selected for both:
-  + <span style="color:blue">Cholesterol</span>
+  + Rented accommodation
+  + <span style="color:blue">High education attainment</span>
+  + Parent history of COPD
+  + <span style="color:blue">Apolipoprotein A</span>
+  + <span style="color:blue">Testosterone</span>
+
 
 Key points:
 
-* Sociodemographic factors associated with lung cancer but not with bladder cancer.
-* Parental history of COPD associated with bladder cancer through smoking.
-* Bladder cancer: Positive association SHBG but negative association with testosterone (?)
+* Sociodemographic factors associated with both lung and bladder cancer, especially education level.
+* Parental history of COPD associated with both lung and bladder cancer.
+* Bladder cancer: negative association with testosterone = women more at risk?
 
 **Questions**
 
@@ -471,7 +705,7 @@ Key points:
   + Selection proportion -- order by variable groupings? or selection?
   + AUC as a function of number of predictors included in model -- overlap models?
 
-### sPLS
+## sPLS
 Lung cancer:
 
 * No. of variables to be selected stably:
@@ -490,6 +724,7 @@ Lung cancer:
 
 
 Bladder cancer:
+
 * No. of variables to be selected stably:
   + adjustment for age, sex, and BMI: 11
   + adjustment for age, sex, BMI and smoking: 8
@@ -506,8 +741,12 @@ Bladder cancer:
   + SHBG
   + Urea
 
+**Question**
 
-### Plan
+* selection proportion paths
+* gPLS
+
+## Plan
 
 Report (Results section) outline:
 
@@ -524,6 +763,7 @@ Report (Results section) outline:
 4. Sensitivity analysis
     i. Stratify by time-to-diagnosis
     ii. Stratify by age at diagnosis
+5. Contextualize findings, especially biomarker meanings
 
 Next steps are in **bold**
 

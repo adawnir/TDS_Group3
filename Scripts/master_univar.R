@@ -107,6 +107,10 @@ foo=function(x, smoking = FALSE){
 # cbind into one table
 forest=cbind(foo(lung_res.1),foo(lung_res.2, smoking = T),
              foo(bladder_res.1),foo(bladder_res.2, smoking = T))
+tmp=as.data.frame(model.matrix(~.,lung_data[,-1])[,-1])
+mynames=colnames(tmp)
+rownames(forest)=mynames[-c(1:7)]
+
 saveRDS(forest, "../Results/forest_plot.rds")
 
 ### Make data set for Manhattan plot ----
