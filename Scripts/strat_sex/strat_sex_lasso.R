@@ -46,7 +46,7 @@ ifelse(dir.exists("../Results/strat_sex_lasso"),"",dir.create("../Results/strat_
 out=CalibrateRegression(xdata=x_train, ydata=y_train, K=100, tau=0.5, verbose=FALSE,
                           family="binomial")
 # Save plot
-pdf(paste0("../Figures/lasso/out_",arr,".pdf"), height=5, width=12)
+pdf(paste0("../Figures/strat_sex_lasso/out_",arr,".pdf"), height=5, width=12)
 CalibrationPlot(out)
 dev.off()
   
