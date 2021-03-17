@@ -1,16 +1,16 @@
-*.csv
 *.rds
-*.txt
-*.xlsx
 *.png
 *.jpeg
 *.jpg
 *.pdf
-*.sh.*
+*.sh*
 /Results
-/Dictionaries
 /Data
 /Figures
+/Example
+/Scripts/Archive
+/RMarkdown
+/PLS_plots
 
 # History files
 .Rhistory
