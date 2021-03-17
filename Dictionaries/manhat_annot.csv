@@ -1,0 +1,72 @@
+col.name,label
+ethnic,Ethnicity
+townsend,Townsend deprivation index
+employment,Employment status
+education,Education
+type_accom,Type of accomodation lived in
+own_rent,Own or rent accomodation lived in
+num_hh,Number in household
+hh_income,Average total household income
+phys_score,Physical activity score
+sleep,Sleep per 24 hours (hours)
+total_meat,Total meat intake score
+white_meat,White meat intake score
+red_meat,Red meat intake score
+pro_meat,Processed meat intake
+total_fru_veg,Total fruit/veg intake score
+salt,Salt added to food
+tea,Tea intake per day
+coffee,Coffee intake per day
+water,Water intake per day
+alcohol,Alcohol intake frequnecy
+mat_smoke,Maternal smoking around birth
+no2,NO[2] (ug/m^3)
+nox,NO[x] (ug/m^3)
+pm10,PM 10 (ug/m^3)
+pm2.5_absorb,PM 2.5 (Absorbance/m)
+pm2.5,PM 2.5 (ug/m^3)
+pm2.5_10,PM 2.5-10 (ug/m^3)
+close_major_rd,Close to major road
+num_med,Number of medications
+parent_COPD,Parental history of COPD
+parent_diabetes,Parental history of Diabetes
+parent_hypertension,Parental history of Hypertension
+parent_stroke,Parental history of Stroke
+parent_CHD,Parental history of Heart disease
+parent_breast,Parental history of Breast cancer
+parent_bowel,Parental history of Bowel cancer
+parent_lung,Parental history of Lung cancer
+parent_prostate,Parental history of Prostate cancer
+cardiovascular,Cardiovascular
+hypertension,Hypertension
+diabetes,Diabetes
+respiratory,Respiratory
+autoimmune,Autoimmune
+Alanine.aminotransferase,Alanine aminotransferase
+Albumin,Albumin
+Alkaline.phosphatase,Alkaline phosphatase
+Apolipoprotein.A,Apolipoprotein A
+Apolipoprotein.B,Apolipoprotein B
+Aspartate.aminotransferase,Aspartate aminotransferase
+C.reactive.protein,C-reactive protein
+Calcium,Calcium
+Cholesterol,Cholesterol
+Creatinine,Creatinine
+Cystatin.C,Cystatin C
+Direct.bilirubin,Direct bilirubin
+Gamma.glutamyltransferase,Gamma glutamyltransferase
+Glucose,Glucose
+Glycated.haemoglobin..HbA1c.,Glycated haemoglobin (HbA1c)
+HDL.cholesterol,HDL cholesterol
+IGF.1,IGF-1
+LDL.direct,LDL direct
+Lipoprotein.A,Lipoprotein A
+Phosphate,Phosphate
+SHBG,SHBG
+Testosterone,Testosterone
+Total.bilirubin,Total bilirubin
+Total.protein,Total protein
+Triglycerides,Triglycerides
+Urate,Urate
+Urea,Urea
+Vitamin.D,Vitamin D
