@@ -227,6 +227,22 @@ xseq=cumsum(xseq)
   dev.off()}
 
 ### Vertical FOREST PLOT ----
+forest=as.data.frame(readRDS("../Results/forest_plot.rds"))
+forest=forest[,-which(grepl("logp_",colnames(forest)))] # Remove p-values
+# Reorder
+myorder=plot_annot$col.name
+forest=forest %>%
+  slice(match(myorder,rownames(forest)))
+
+mylabels=plot_annot$label
+myref=plot_annot$ref
+variable_cat=c(rep("Sociodemographic",18),
+               rep("Health risk", 28),
+               rep("Environmental", 8),
+               rep("Medical", 16),
+               rep("Biomarkers", 28))
+
+models=c("Base model", "Model adjusted on smoking status")
 # vertical two panels
 myspacing=4
 xseq=rep(myspacing, nrow(forest))
@@ -344,6 +360,142 @@ myrange=c(min(forest[1:6], na.rm=T),max(forest[1:6],na.rm=T),min(forest[7:12], n
   legend("bottomright", pch = c(mypch, 19), col = mycolours,
          legend=models, cex=0.5, bg="white")
   mtext(side=1, outer=T, text="Odds Ratio", line=2, cex.lab=0.7)
+  dev.off()}
+
+### Horizontal FOREST PLOT ----
+forest=as.data.frame(readRDS("../Results/forest_plot.rds"))
+forest=forest[,-which(grepl("logp_",colnames(forest)))] # Remove p-values
+# Reorder
+myorder=plot_annot$col.name
+forest=forest %>%
+  slice(match(myorder,rownames(forest)))
+
+mylabels=plot_annot$label
+myref=plot_annot$ref
+variable_cat=c(rep("Sociodemographic",18),
+               rep("Health risk", 28),
+               rep("Environmental", 8),
+               rep("Medical", 16),
+               rep("Biomarkers", 28))
+
+models=c("Base model", "Model adjusted on smoking status")
+# Horizontal two panels
+myspacing=4
+xseq=rep(myspacing, nrow(forest))
+xseq=cumsum(xseq)
+mypch=17
+mycex=0.5
+background=TRUE
+mycolours=darken(c("navy", "tomato"), amount=0.2)
+myrange=c(min(forest[1:6], na.rm=T),max(forest[1:6],na.rm=T),min(forest[7:12], na.rm=T),max(forest[7:12],na.rm=T))
+
+{pdf("../Figures/master_univ/forest_plot.3.pdf", height = 10, width = 12)
+  par(oma=c(17, 2, 3, 4), mar=c(0, 0.5, 0.5, 0), mfrow=c(2,1))
+  plot(y=forest[,1], x=xseq-1,
+       xlim=c(min(xseq), max(xseq)),ylim=myrange[1:2],
+       xaxt="n", yaxt="n",
+       pch=mypch, col=mycolours[1], lwd=1, cex=mycex,
+       ylab="",xlab="",log="y")
+  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
+  if (background){
+    for (k in seq(1,length(xseqgreysep),by=2)){
+      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
+              y=exp(c(-30,-30,30,30)), col="grey95", border=NA)
+    }
+    for (k in seq(2,length(xseqgreysep),by=2)){
+      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
+              y=exp(c(-30,-30,30,30)), col="grey98", border=NA)
+    }
+    box()
+  }
+  plotCI(x=xseq-1, y=forest[,1], li=forest[,2], ui=forest[,3],
+         ylim=myrange[1:2], yaxt="n", xaxt="n", pch=mypch, col=mycolours[1], lwd=1, cex=mycex, sfrac=0.001,
+         ylab="",xlab="", add=TRUE)
+  plotCI(x=xseq+1, y=forest[,4], li=forest[,5], ui=forest[,6],
+         ylim=myrange[1:2], yaxt="n", xaxt="n", pch=19, col=mycolours[2], lwd=1, cex=mycex, sfrac=0.001,
+         ylab="",xlab="", add=TRUE, slty=2)
+  axis(side=4, at=axTicks(2), cex.axis=0.7)
+  abline(v=1, lty=2)
+  abline(v=xseqgreysep,lty=3, col="grey")
+  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
+  abline(v=xseqblack,lty=3,col="black")
+  for (k in 1:(length(xseqblack)-1)){
+    axis(side=3, at=xseqblack[c(k,k+1)]+c(2,-2), line=0.5, labels=NA)
+  }
+  for (k in 1:(length(xseqblack)-1)){
+    axis(side=3, at=mean(xseqblack[c(k,k+1)]), las = 1, line=0.2, tick=FALSE,
+         labels=unique(variable_cat)[k])
+  }
+  mtext(side=2, text="Lung cancer", line=0.2, cex.lab=0.7)
+  legend("topright", pch = c(mypch, 19), col = mycolours,
+         legend=models, cex=0.7, bg="white")
+  # Bladder
+  plot(y=forest[,7], x=xseq-1,
+       xlim=c(min(xseq), max(xseq)),ylim=myrange[3:4],
+       xaxt="n", yaxt="n",
+       pch=mypch, col=mycolours[1], lwd=1, cex=mycex,
+       ylab="",xlab="",log="y")
+  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
+  if (background){
+    for (k in seq(1,length(xseqgreysep),by=2)){
+      polygon(y=exp(c(-30,-30,30,30)),
+              x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
+              col="grey95", border=NA)
+    }
+    for (k in seq(2,length(xseqgreysep),by=2)){
+      polygon(y=exp(c(-30,-30,30,30)),
+              x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
+              col="grey98", border=NA)
+    }
+    box()
+  }
+  plotCI(x=xseq-1, y=forest[,7], li=forest[,8], ui=forest[,9],
+         ylim=myrange[3:4], yaxt="n", xaxt="n", pch=mypch, col=mycolours[1], lwd=1, cex=mycex, sfrac=0.001,
+         ylab="",xlab="", add=TRUE)
+  plotCI(x=xseq+1, y=forest[,10], li=forest[,11], ui=forest[,12],
+         ylim=myrange[3:4], yaxt="n", xaxt="n", pch=19, col=mycolours[2], lwd=1, cex=mycex, sfrac=0.001,
+         ylab="",xlab="", add=TRUE, slty=2)
+  for (k in 1:length(xseq)){
+    mytext=mylabels[k]
+    if (grepl("m\\^", mytext)){
+      mytext=gsub("m\\^","'~m^", mytext)
+      mytext=sub(")","~')", mytext)
+    }
+    if (grepl("\\[", mytext)){
+      mytext=gsub("\\[","'[", mytext)
+      mytext=sub("\\(ug","~'(ug", mytext)
+    }
+    mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
+    axis(side=1, at=xseq[k], labels=mytmp, las=2, cex.axis=0.5)
+  }
+  xseqgrey=xseq[which(!duplicated(myref)|is.na(myref))]-myspacing/2
+  tmpseq=c(xseqgrey,max(xseqgrey)-myspacing/2)
+  for (k in 1:(length(tmpseq)-1)){
+    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
+      axis(side=1, at=tmpseq[c(k,k+1)]+c(2,-2), line=7, labels=NA, cex=0.5)
+    }
+  }
+  for (k in 1:(length(tmpseq)-1)){
+    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
+      mytext=myref[which(!duplicated(myref)|is.na(myref))][k]
+      if (grepl("m\\^", mytext)){
+        mytext=gsub("m\\^","'~m^", mytext)
+        mytext=sub(")","~')", mytext)
+      }
+      mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
+      axis(side=1, at=mean(tmpseq[c(k,k+1)]), line=6.7, tick=FALSE, cex.axis=0.5,
+           labels=mytmp, las=2)
+    }
+  }
+  axis(side=4, at=axTicks(2), cex.axis=0.7)
+  abline(v=1, lty=2)
+  abline(v=xseqgreysep,lty=3, col="grey")
+  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
+  abline(v=xseqblack,lty=3,col="black")
+  mtext(side=2, text="Bladder cancer", line=0.2, cex.lab=0.7)
+  legend("topright", pch = c(mypch, 19), col = mycolours,
+         legend=models, cex=0.7, bg="white")
+  mtext(side=4, outer=T, text="Odds Ratio", line=2, cex.lab=0.7)
   dev.off()}
 
 
