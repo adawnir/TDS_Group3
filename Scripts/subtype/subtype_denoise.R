@@ -124,32 +124,58 @@ mal.upper.1=do.call("cbind",mal.upper.1)
 mal.upper.2=sapply(6:ncol(mal.upper), foo, dat=mal.upper, smoking=T)
 mal.upper.2=do.call("cbind",mal.upper.2)
 
-# getting a lot of errors here - before i go further, does it make sense to denoise with so few cases ?
-## One hot encoding for non-denoised data
-tmp=as.data.frame(model.matrix(~.,lung.0[,-1])[,-1])
-lung.0=cbind(lung.0$case_status,tmp)
-colnames(lung.0)[1]="case_status"
-
-tmp=as.data.frame(model.matrix(~.,bladder.0[,-1])[,-1])
-bladder.0=cbind(bladder.0$case_status,tmp)
-colnames(bladder.0)[1]="case_status"
+## Get one-hot encoding names
+tmp=as.data.frame(model.matrix(~.,insitu.lung.1[,-1])[,-1])
+mynames=c("case_status",colnames(tmp))
 
 # Rename columns and add Y
-lung.1=cbind(lung.0$case_status,as.data.frame(lung.1))
-colnames(lung.1)=colnames(lung.0)[c(1,9:ncol(lung.0))]
-lung.2=cbind(lung.0$case_status,as.data.frame(lung.2))
-colnames(lung.2)=colnames(lung.0)[c(1,13:ncol(lung.0))]
+insitu.lung.1=cbind(lung_data$case_status,as.data.frame(insitu.lung.1))
+colnames(insitu.lung.1)=mynames[c(1,9:length(mynames))]
+insitu.lung.2=cbind(lung_data$case_status,as.data.frame(insitu.lung.2))
+colnames(insitu.lung.2)=mynames[c(1,13:length(mynames))]
 
-bladder.1=cbind(bladder.0$case_status,as.data.frame(bladder.1))
-colnames(bladder.1)=colnames(bladder.0)[c(1,9:ncol(bladder.0))]
-bladder.2=cbind(bladder.0$case_status,as.data.frame(bladder.2))
-colnames(bladder.2)=colnames(bladder.0)[c(1,13:ncol(bladder.0))]
+insitu.trachea.1=cbind(trachea_data$case_status,as.data.frame(insitu.trachea.1))
+colnames(insitu.trachea.1)=mynames[c(1,9:length(mynames))]
+insitu.trachea.2=cbind(trachea_data$case_status,as.data.frame(insitu.trachea.2))
+colnames(insitu.trachea.2)=mynames[c(1,13:length(mynames))]
 
-# Save data sets
-ifelse(dir.exists("../Results/denoised.site"),"",dir.create("../Results/denoised.site"))
-saveRDS(lung.0,"../Results/denoised.site/lung.0_denoised.rds")
-saveRDS(lung.1,"../Results/denoised.site/lung.1_denoised.rds")
-saveRDS(lung.2,"../Results/denoised.site/lung.2_denoised.rds")
-saveRDS(bladder.0,"../Results/denoised.site/bladder.0_denoised.rds")
-saveRDS(bladder.1,"../Results/denoised.site/bladder.1_denoised.rds")
-saveRDS(bladder.2,"../Results/denoised.site/bladder.2_denoised.rds")
+mal.trachea.1=cbind(lung_data$case_status,as.data.frame(mal.trachea.1))
+colnames(mal.trachea.1)=mynames[c(1,9:length(mynames))]
+mal.trachea.2=cbind(lung_data$case_status,as.data.frame(mal.trachea.2))
+colnames(mal.trachea.2)=mynames[c(1,13:length(mynames))]
+
+mal.lung.1=cbind(lung_data$case_status,as.data.frame(mal.lung.1))
+colnames(mal.lung.1)=mynames[c(1,9:length(mynames))]
+mal.lung.2=cbind(lung_data$case_status,as.data.frame(mal.lung.2))
+colnames(mal.lung.2)=mynames[c(1,13:length(mynames))]
+
+mal.lower.1=cbind(lung_data$case_status,as.data.frame(mal.lower.1))
+colnames(mal.lower.1)=mynames[c(1,9:length(mynames))]
+mal.lower.2=cbind(lung_data$case_status,as.data.frame(mal.lower.2))
+colnames(mal.lower.2)=mynames[c(1,13:length(mynames))]
+
+mal.main.1=cbind(lung_data$case_status,as.data.frame(mal.main.1))
+colnames(mal.main.1)=mynames[c(1,9:length(mynames))]
+mal.main.2=cbind(lung_data$case_status,as.data.frame(mal.main.2))
+colnames(mal.main.2)=mynames[c(1,13:length(mynames))]
+
+mal.middle.1=cbind(lung_data$case_status,as.data.frame(mal.middle.1))
+colnames(mal.middle.1)=mynames[c(1,9:length(mynames))]
+mal.middle.2=cbind(lung_data$case_status,as.data.frame(mal.middle.2))
+colnames(mal.middle.2)=mynames[c(1,13:length(mynames))]
+
+mal.overlap.1=cbind(lung_data$case_status,as.data.frame(mal.overlap.1))
+colnames(mal.overlap.1)=mynames[c(1,9:length(mynames))]
+mal.overlap.2=cbind(lung_data$case_status,as.data.frame(mal.overlap.2))
+colnames(mal.overlap.2)=mynames[c(1,13:length(mynames))]
+
+mal.upper.1=cbind(lung_data$case_status,as.data.frame(mal.upper.1))
+colnames(mal.upper.1)=mynames[c(1,9:length(mynames))]
+mal.upper.2=cbind(lung_data$case_status,as.data.frame(mal.upper.2))
+colnames(mal.upper.2)=mynames[c(1,13:length(mynames))]
+
+arr=paste0(rep(c("insitu.lung","insitu.trachea","mal.trachea","mal.lung","mal.lower","mal.main","mal.middle","mal.overlap","mal.upper"),each=2),".",1:2)
+ifelse(dir.exists("../Results/strat_site_lasso"),"",dir.create("../Results/strat_site_lasso"))
+for (i in 1:length(arr)) {
+  saveRDS(eval(parse(text=arr[i])),paste0("../Results/strat_site_lasso/",arr[i],"_denoised.rds"))
+}

@@ -3,7 +3,7 @@
 *.jpeg
 *.jpg
 *.pdf
-*.sh*
+*.sh.*
 /Results
 /Data
 /Figures
@@ -11,6 +11,8 @@
 /Scripts/Archive
 /RMarkdown
 /PLS_plots
+/Scripts/PLS
+/Scripts/PLS/sh_files_for_PLS
 
 # History files
 .Rhistory
@@ -51,3 +53,6 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+
+# howtoHPC
+howtoHPC.txt
