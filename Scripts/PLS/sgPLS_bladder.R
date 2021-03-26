@@ -67,8 +67,8 @@ saveRDS(sg_out_1, "sgPLS_stability_selection_bladder.1.rds")
 
 
 ### lung.2
-X_sg2 <-  bladder.1[, -1]
-Y_sg2 <-  bladder.1[, 1]
+X_sg2 <-  bladder.2[, -1]
+Y_sg2 <-  bladder.2[, 1]
 
 niter=100 # TO INCREASE FOR ACTUAL ANALYSES
 t0=Sys.time()
@@ -76,7 +76,7 @@ alpha_list=seq(0.05,0.95,by=0.05)
 stability_alpha=NULL
 for (k in 1:length(alpha_list)){
   myalpha=alpha_list[k]
-  tmp=CalibrateRegression(xdata = X_sg2, ydata = Y_sg2, Lambda=1:(length(Xgroups_1)+1), 
+  tmp=CalibrateRegression(xdata = X_sg2, ydata = Y_sg2, Lambda=1:(length(Xgroups_2)+1), 
                           K = niter, family="binomial", implementation="SparseGroupPLS", 
                           ind.block.x = Xgroups_2, alpha.x=myalpha)
   assign(paste0("out_", k), tmp)

@@ -1,5 +1,6 @@
 ### TDS Project -- Stratified analysis by sex: Stability selection LASSO Logistic Regression ARRAY JOB (RUN ON HPC)
 ## Programme created by Rin Wada on 15 March
+## Edited by Fergal to run for townsend stratification
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"
@@ -21,8 +22,8 @@ m=as.numeric(args[1])
 
 
 ## Load data set
-arr=paste0(rep(c("lung","bladder"),each=4),".",rep(c("f","m"),each=2),".",1:2)[m] ### Change name for other stratification
-dat=readRDS(paste0("../Results/strat_sex_denoised/",arr,"_denoised.rds")) ### Change path for other stratification
+arr=paste0(rep(c("lung","bladder"),each=2),rep(c("low","mid",'high'),each=4),".",1:2)[m] ### Change name for other stratification
+dat=readRDS(paste0("../Results/denoised/townsend_strat/",arr,"_denoised.rds")) ### Change path for other stratification
 
 ## Make data set
 y=dat$case_status
@@ -35,31 +36,31 @@ y_test=y[-train]
 x_test=x[-train, ]
 
 ## Create directories
-ifelse(dir.exists("../Figures/strat_sex_lasso"),"",dir.create("../Figures/strat_sex_lasso")) ### Change path for other stratification
-ifelse(dir.exists("../Results/strat_sex_lasso"),"",dir.create("../Results/strat_sex_lasso")) ### Change path for other stratification
+ifelse(dir.exists("../Figures/strat_townsend_lasso"),"",dir.create("../Figures/strat_townsend_lasso")) ### Change path for other stratification
+ifelse(dir.exists("../Results/strat_townsend_lasso"),"",dir.create("../Results/strat_townsend_lasso")) ### Change path for other stratification
 
 ## Running stability selection
 out=CalibrateRegression(xdata=x_train, ydata=y_train, K=100, tau=0.5, verbose=FALSE,
-                          family="binomial")
+                        family="binomial")
 # Save plot
-pdf(paste0("../Figures/strat_sex_lasso/out_",arr,".pdf"), height=5, width=12) ### Change path for other stratification
+pdf(paste0("../Figures/strat_townsend_lasso/out_",arr,".pdf"), height=5, width=12) ### Change path for other stratification
 CalibrationPlot(out)
 dev.off()
-  
+
 # Extracting ID of calibrated lambda
 hat_lambda_id=GetArgmaxId(out)[1]
-  
+
 # Computing average beta coefficients from models with calibrated lambda
 average_beta=apply(out$Beta[hat_lambda_id,,],1,FUN=function(x){mean(x[x!=0])})
-  
+
 # Calibrated selection proportions 
 selprop=out$selprop[hat_lambda_id,]
-  
+
 # Save
-saveRDS(out, paste0("../Results/strat_sex_lasso/out_",arr,".rds")) ### Change path for other stratification
-saveRDS(average_beta, paste0("../Results/strat_sex_lasso/average_beta_",arr,".rds")) ### Change path for other stratification
-saveRDS(selprop, paste0("../Results/strat_sex_lasso/selprop_",arr,".rds")) ### Change path for other stratification
-  
+saveRDS(out, paste0("../Results/strat_townsend_lasso/out_",arr,".rds")) ### Change path for other stratification
+saveRDS(average_beta, paste0("../Results/strat_townsend_lasso/average_beta_",arr,".rds")) ### Change path for other stratification
+saveRDS(selprop, paste0("../Results/strat_townsend_lasso/selprop_",arr,".rds")) ### Change path for other stratification
+
 # Computing AUCs on the test set from models where predictors are added in order of decreasing selection proportion
 selprop_nonzero=selprop[selprop>0]
 myorder=names(selprop_nonzero)[sort.list(selprop_nonzero, decreasing = TRUE)]
@@ -78,4 +79,4 @@ for (k in 1:length(myorder)){
 }
 rownames(myaucs_table)=myorder
 colnames(myaucs_table)=c("li","auc","ui")
-saveRDS(myaucs_table, paste0("../Results/strat_sex_lasso/auc_",arr,".rds")) ### Change path for other stratification
+saveRDS(myaucs_table, paste0("../Results/strat_townsend_lasso/auc_",arr,".rds")) ### Change path for other stratification
