@@ -1,6 +1,6 @@
-### TDS Project -- Stability selection LASSO & sPLS Visualisation
+### TDS Project -- Stability selection LASSO & sPLS Visualisation (Run on HPC)
 ## Programme created by Rin on 21 March
-## Edited by Fergal to run for townsend stratification
+#Edited by fergal to run for townsend stratification
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"
@@ -11,819 +11,443 @@ library(RColorBrewer)
 library(tidyverse)
 library(plotrix)
 library(colorspace)
+library(ggrepel)
+library(cowplot)
+library(pROC)
 
 source("penalisation_functions.R")
 
-### Plot labels----
+### Load labels----
 plot_annot=read_csv("../Dictionaries/plot_annot.csv")
-plot_annot=plot_annot[-c(1,2,21:25),] # Remove age, sex and BMI
+plot_annot=plot_annot[-c(1,2,4,21:25),] # Remove age, sex, BMI and townsend
+mylabels=plot_annot$label.point
 
 
 ### Load outputs ----
+lasso_hat_params=NULL
+spls_hat_params=NULL
 for (m in 1:8){
-  arr=paste0(rep(c("lung","bladder"),each=4),rep(c("high","low"),each=2),".",c(1,2))[m]
+  arr=paste0(rep(c("lung","bladder"),each=4),".",rep(c("h","l"),each=2),".",c(1,2))[m]
   
   ### Lasso
   lasso_out=readRDS(paste0("../Results/strat_townsend_lasso/out_",arr,".rds")) # Load output
   assign(paste0("lasso_out_",arr),lasso_out) # Assign name
-  lasso_hat_params=GetArgmax(lasso_out) # Extract calibrated pi
-  assign(paste0("lasso_hat_params_",arr),lasso_hat_params) # Assign name
+  lasso_hat_params=rbind(lasso_hat_params, GetArgmax(lasso_out)) # Extract calibrated pi
   lasso_selprop=readRDS(paste0("../Results/strat_townsend_lasso/selprop_",arr,".rds")) # Load selection proportion
   assign(paste0("lasso_selprop_",arr),lasso_selprop) # Assign name
   lasso_beta=readRDS(paste0("../Results/strat_townsend_lasso/average_beta_",arr,".rds")) # Load beta
   lasso_beta=ifelse(CalibratedStableRegression(lasso_out) == 1, lasso_beta, 0) # Shrink non-selected beta to zero
   lasso_beta=exp(lasso_beta) # Exponentiate to OR
   assign(paste0("lasso_beta_",arr),lasso_beta) # Assign name
+  lasso_calib=sum(CalibratedStableRegression(lasso_out)) # Number of selected variables
+  assign(paste0("lasso_calib_",arr),lasso_calib) # Assign name
+  lasso_auc=readRDS(paste0("../Results/strat_townsend_lasso/auc_",arr,".rds")) # Load auc (recalibrated)
+  assign(paste0("lasso_auc_",arr),lasso_auc) # Assign name
+  lasso_roc=readRDS(paste0("../Results/strat_townsend_lasso/roc_",arr,".rds")) # Load roc (recalibrated)
+  assign(paste0("lasso_roc_",arr),lasso_roc) # Assign name
   
   ### sPLS
-  spls_out=readRDS(paste0("../Results/strat_townsend_spls_200321/out_",arr,".rds")) # Load output
+  spls_out=readRDS(paste0("../Results/strat_townsend_spls/out_",arr,".rds")) # Load output
   assign(paste0("spls_out_",arr),spls_out) # Assign name
-  spls_hat_params=GetArgmax(spls_out) # Extract calibrated pi
-  assign(paste0("spls_hat_params_",arr),spls_hat_params) # Assign name
-  spls_selprop=readRDS(paste0("../Results/strat_townsend_spls_200321/selprop_",arr,".rds")) # Load selection proportion
+  spls_hat_params=rbind(spls_hat_params, GetArgmax(spls_out)) # Extract calibrated pi
+  spls_selprop=readRDS(paste0("../Results/strat_townsend_spls/selprop_",arr,".rds")) # Load selection proportion
   assign(paste0("spls_selprop_",arr),spls_selprop) # Assign name
-  spls_beta=readRDS(paste0("../Results/strat_townsend_spls_200321/beta_",arr,".rds")) # Load beta
+  spls_beta=readRDS(paste0("../Results/strat_townsend_spls/beta_",arr,".rds")) # Load beta
   spls_beta=ifelse(CalibratedStableRegression(spls_out) == 1, spls_beta, 0) # Shrink non-selected beta to zero
   assign(paste0("spls_beta_",arr),spls_beta) # Assign name
 }
 
-# Reorder rows and transform to vector with empty values in between
-foo = function(x1, x2, order){
-  x=datahighrame(x1)
-  x[,2]=x2[match(rownames(x),names(x2))]
-  x = slice(x, match(order,rownames(x)))
-  x=cbind(rep(NA,nrow(x)),x[,1],
-          rep(NA, nrow(x)),x[,2],
-          rep(NA,nrow(x)))
-  x=as.vector(t(x))
-}
+rownames(lasso_hat_params)=arr=paste0(rep(c("lung","bladder"),each=4),".",rep(c("h","l"),each=2),".",c(1,2))
+rownames(spls_hat_params)=arr=paste0(rep(c("lung","bladder"),each=4),".",rep(c("h","l"),each=2),".",c(1,2))
+
+## Print model parameters
+print(lasso_hat_params)
+print(spls_hat_params)
+
 # Reorder rows and transform to dataframe for ggplot
-foo2 = function(l1, l2, s1, s2, order){
-  x=data.frame(l1)
-  x[,2]=l2[match(rownames(x),names(l2))]
-  x[,3]=s1[match(rownames(x),names(s1))]
-  x[,4]=s2[match(rownames(x),names(s2))]
+foo = function(h1, l1, h2, l2, order){
+  x=data.frame(h1)
+  x$l1=l1[match(rownames(x),names(l1))]
+  x$h2=h2[match(rownames(x),names(h2))]
+  x$l2=l2[match(rownames(x),names(l2))]
   x = slice(x, match(order,rownames(x)))
-  df=data.frame(or=unlist(x[,1:2]),load=unlist(x[,3:4]),
-                var=rep(rownames(x),2),
-                model=rep(c("Base model","Model adjusted for smoking status"),each=nrow(x)))
 }
-colnames=names(lasso_selprop_lunghigh.1)
-myorder=c(colnames[5:46],colnames[1:4],colnames[47:length(colnames)])
-lasso_selprop_lunghigh=foo(lasso_selprop_lunghigh.1,
-                         lasso_selprop_lunghigh.2,
-                         myorder)
-spls_selprop_lunghigh=foo(spls_selprop_lunghigh.1,
-                        spls_selprop_lunghigh.2,
-                        myorder)
 
-beta_lunghigh=foo2(lasso_beta_lunghigh.1, lasso_beta_lunghigh.2,
-                 spls_beta_lunghigh.1,spls_beta_lunghigh.2,myorder)
 
-# Lung Low SES
-lasso_selprop_lunglow=foo(lasso_selprop_lunglow.1,
-                         lasso_selprop_lunglow.2,
-                         myorder)
-spls_selprop_lunglow=foo(spls_selprop_lunglow.1,
-                        spls_selprop_lunglow.2,
-                        myorder)
-beta_lunglow=foo2(lasso_beta_lunglow.1, lasso_beta_lunglow.2,
-                 spls_beta_lunglow.1,spls_beta_lunglow.2,myorder)
 
-# bladder HighSES
-lasso_selprop_bladderhigh=foo(lasso_selprop_bladderhigh.1,
-                            lasso_selprop_bladderhigh.2,
-                            myorder)
+colnames=names(lasso_beta_lung.h.1)
+myorder=c(colnames[5],'townsend',colnames[6:37],colnames[1:4],colnames[38:length(colnames)])
 
-spls_selprop_bladderhigh=foo(spls_selprop_bladderhigh.1,
-                           spls_selprop_bladderhigh.2,
-                           myorder)
+lblh1 <- unname(lasso_beta_lung.h.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+lasso_beta_lung.h.1 <- lblh1
+names(lasso_beta_lung.h.1)[2] <- c('townsend')
 
-beta_bladderhigh=foo2(lasso_beta_bladderhigh.1, lasso_beta_bladderhigh.2,
-                    spls_beta_bladderhigh.1,spls_beta_bladderhigh.2,myorder)
-# bladder Low SES
-lasso_selprop_bladderlow=foo(lasso_selprop_bladderlow.1,
-                            lasso_selprop_bladderlow.2,
-                            myorder)
+lblh1 <- unname(lasso_beta_lung.l.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+lasso_beta_lung.l.1 <- lblh1
+names(lasso_beta_lung.l.1)[2] <- c('townsend')
 
-spls_selprop_bladderlow=foo(spls_selprop_bladderlow.1,
-                           spls_selprop_bladderlow.2,
-                           myorder)
-beta_bladderlow=foo2(lasso_beta_bladderlow.1, lasso_beta_bladderlow.2,
-                    spls_beta_bladderlow.1,spls_beta_bladderlow.2,myorder)
+lblh1 <- unname(lasso_beta_lung.h.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+lasso_beta_lung.h.2 <- lblh1
+names(lasso_beta_lung.h.2)[2] <- c('townsend')
 
-### Selection proportion plots----
-## Glabal settings
-mylabels=plot_annot$label
-myref=plot_annot$ref
+lblh1 <- unname(lasso_beta_lung.l.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+lasso_beta_lung.l.2 <- lblh1
+names(lasso_beta_lung.l.2)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_lung.h.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+spls_beta_lung.h.1 <- lblh1
+names(spls_beta_lung.h.1)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_lung.l.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+spls_beta_lung.l.1 <- lblh1
+names(spls_beta_lung.l.1)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_lung.h.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+spls_beta_lung.h.2 <- lblh1
+names(spls_beta_lung.h.2)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_lung.l.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+spls_beta_lung.l.2 <- lblh1
+names(spls_beta_lung.l.2)[2] <- c('townsend')
+
+
+
+lblh1 <- unname(lasso_beta_bladder.h.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+lasso_beta_bladder.h.1 <- lblh1
+names(lasso_beta_bladder.h.1)[2] <- c('townsend')
+
+lblh1 <- unname(lasso_beta_bladder.l.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+lasso_beta_bladder.l.1 <- lblh1
+names(lasso_beta_bladder.l.1)[2] <- c('townsend')
+
+lblh1 <- unname(lasso_beta_bladder.h.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+lasso_beta_bladder.h.2 <- lblh1
+names(lasso_beta_bladder.h.2)[2] <- c('townsend')
+
+lblh1 <- unname(lasso_beta_bladder.l.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+lasso_beta_bladder.l.2 <- lblh1
+names(lasso_beta_bladder.l.2)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_bladder.h.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+spls_beta_bladder.h.1 <- lblh1
+names(spls_beta_bladder.h.1)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_bladder.l.1)
+lblh1 <- c(lblh1[5],NA,lblh1[6:37],lblh1[1:4],lblh1[38:89])
+names(lblh1) <- myorder
+spls_beta_bladder.l.1 <- lblh1
+names(spls_beta_bladder.l.1)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_bladder.h.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+spls_beta_bladder.h.2 <- lblh1
+names(spls_beta_bladder.h.2)[2] <- c('townsend')
+
+lblh1 <- unname(spls_beta_bladder.l.2)
+lblh1 <- c(lblh1[1],NA,lblh1[2:33],NA,NA,NA,NA,lblh1[34:85])
+names(lblh1) <- myorder
+spls_beta_bladder.l.2 <- lblh1
+names(spls_beta_bladder.l.2)[2] <- c('townsend')
+
+## Lung
+# LASSO
+lasso_beta_lung=foo(lasso_beta_lung.h.1, lasso_beta_lung.l.1,
+                    lasso_beta_lung.h.2, lasso_beta_lung.l.2, myorder)
+# sPLS
+spls_beta_lung=foo(spls_beta_lung.h.1, spls_beta_lung.l.1,
+                   spls_beta_lung.h.2, spls_beta_lung.l.2, myorder)
+
+## Bladder
+# LASSO
+lasso_beta_bladder=foo(lasso_beta_bladder.h.1, lasso_beta_bladder.l.1,
+                       lasso_beta_bladder.h.2, lasso_beta_bladder.l.2, myorder)
+# sPLS
+spls_beta_bladder=foo(spls_beta_bladder.h.1, spls_beta_bladder.l.1,
+                      spls_beta_bladder.h.2, spls_beta_bladder.l.2, myorder)
+
+
+### OR plot----
 variable_cat=c(rep("Sociodemographic",18),
-               rep("Health risk", 28),
+               rep("Health risk", 20),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
-models=c("Base model", "Model adjusted on smoking status")
-mycolours=c("navy","red")
-n=2 # Number of lines per variable
-myspacing=n*2+1
-xseq=seq((n+1),length(myorder)*myspacing, by=myspacing)
-background=TRUE
-myrange=c(0,1)
+mycolours=c("grey50" ,"tomato","forestgreen","royalblue","gold")
 
-## HighSES
-# Lung
-pi_spls=c(spls_hat_params_lunghigh.1[2],spls_hat_params_lunghigh.2[2]) # sPLS Selection proportion threshold
-pi_lasso=c(lasso_hat_params_lunghigh.1[2],lasso_hat_params_lunghigh.2[2]) # LASSO Selection proportion threshold
-file_path="lung_HighSES"
-spls=spls_selprop_lunghigh
-lasso=lasso_selprop_lunghigh
-background_colour="darkturquoise" # For lung
-{pdf(paste0("../Figures/Report/selprop_",file_path,".pdf"), height = 6, width = 11)
-  par(oma=c(1, 5, 3, 1), mfrow=c(2,1),las=0)
-  # sPLS
-  par(mar=c(5.5, 0, 0, 0),xpd=FALSE)
-  plot(spls,ylim=myrange, xlim=c(1,length(spls)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(spls, ylim=myrange, type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(sPLS)", line=2, cex.lab=0.7)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=xseqblack[c(k,k+1)]+c(2,-2), line=0.5, labels=NA)
-  }
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=mean(xseqblack[c(k,k+1)]), line=0.2, tick=FALSE,
-         labels=unique(variable_cat)[k])
-  }
-  par(xpd=TRUE)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  for (k in 1:length(xseq)){
-    mytext=mylabels[k]
-    if (grepl("m\\^", mytext)){
-      mytext=gsub("m\\^","'~m^", mytext)
-      mytext=sub(")","~')", mytext)
-    }
-    if (grepl("\\[", mytext)){
-      mytext=gsub("\\[","'[", mytext)
-      mytext=sub("\\(ug","~'(ug", mytext)
-    }
-    mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
-    if (is.na(myref)[k]){
-      myadj=0.5
-      mycex=0.5
-      myline=5.5
-    } else{
-      myadj=0
-      mycex=0.4
-      myline=5.2
-    }
-    par(xpd=TRUE)
-    mtext(side=1, mytmp, line=myline, at=xseq[k], adj=myadj, cex=mycex, las=2)
-  }
-  xseqgrey=xseq[which(!duplicated(myref)|is.na(myref))]-myspacing/2
-  tmpseq=c(xseqgrey,max(xseqgrey)-myspacing/2)
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      axis(side=1, at=tmpseq[c(k,k+1)]+c(2,-2), line=5.5, labels=NA, tck=-0.005)
-    }
-  }
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      mytext=myref[which(!duplicated(myref)|is.na(myref))][k]
-      tmp=sub(" \\(","&(", mytext)
-      split=strsplit(tmp, "&", perl=TRUE)
-      mytext1=split[[1]][1]
-      if (grepl("m\\^", mytext1)){
-        mytext1=gsub("m\\^","'~m^", mytext1)
-        mytext1=sub(")","~')", mytext1)
-      }
-      mytmp1=eval(parse(text=paste0("expression(","'", mytext1,"'",")")))
-      mytmp2=split[[1]][2]
-      mtext(mytmp1, side=1, at=mean(tmpseq[c(k,k+1)])-myspacing/2, line=5.8,  adj=1, cex=0.5,
-            las=2)
-      mtext(mytmp2, side=1, at=mean(tmpseq[c(k,k+1)])+myspacing/2, line=5.8,  adj=1, cex=0.4,
-            las=2)
-    }
-  }
-  legend("bottomright",inset=c(0,-0.27),lty=1, legend=models, col=mycolours, cex=0.6, bg="white")
-  # LASSO
-  par(mar=c(0, 0, 5.5, 0),xpd=FALSE)
-  plot(lasso, ylim=myrange, xlim=c(1,length(lasso)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(lasso, ylim=rev(myrange), type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(LASSO)", line=2, cex.lab=0.7)
-  par(xpd=TRUE)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  dev.off()
-} # Run this to make plot
+rownames(lasso_beta_lung)
+plot_annot$label.point
+mylabels <- c(plot_annot$label.point[1], 'townsend', plot_annot$label.point[2:89])
+lasso_beta_lung$namelabel <- mylabels
 
-# Bladder
-pi_spls=c(spls_hat_params_bladderhigh.1[2],spls_hat_params_bladderhigh.2[2]) # sPLS Selection proportion threshold
-pi_lasso=c(lasso_hat_params_bladderhigh.1[2],lasso_hat_params_bladderhigh.2[2]) # LASSO Selection proportion threshold
-file_path="bladder_HighSES"
-spls=spls_selprop_bladderhigh
-lasso=lasso_selprop_bladderhigh
-background_colour="hotpink" # For bladder
-{pdf(paste0("../Figures/Report/selprop_",file_path,".pdf"), height = 6, width = 11)
-  par(oma=c(1, 5, 3, 1), mfrow=c(2,1),las=0)
-  # sPLS
-  par(mar=c(5.5, 0, 0, 0),xpd=FALSE)
-  plot(spls,ylim=myrange, xlim=c(1,length(spls)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(spls, ylim=myrange, type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(sPLS)", line=2, cex.lab=0.7)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=xseqblack[c(k,k+1)]+c(2,-2), line=0.5, labels=NA)
-  }
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=mean(xseqblack[c(k,k+1)]), line=0.2, tick=FALSE,
-         labels=unique(variable_cat)[k])
-  }
-  par(xpd=TRUE)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  for (k in 1:length(xseq)){
-    mytext=mylabels[k]
-    if (grepl("m\\^", mytext)){
-      mytext=gsub("m\\^","'~m^", mytext)
-      mytext=sub(")","~')", mytext)
-    }
-    if (grepl("\\[", mytext)){
-      mytext=gsub("\\[","'[", mytext)
-      mytext=sub("\\(ug","~'(ug", mytext)
-    }
-    mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
-    if (is.na(myref)[k]){
-      myadj=0.5
-      mycex=0.5
-      myline=5.5
-    } else{
-      myadj=0
-      mycex=0.4
-      myline=5.2
-    }
-    par(xpd=TRUE)
-    mtext(side=1, mytmp, line=myline, at=xseq[k], adj=myadj, cex=mycex, las=2)
-  }
-  xseqgrey=xseq[which(!duplicated(myref)|is.na(myref))]-myspacing/2
-  tmpseq=c(xseqgrey,max(xseqgrey)-myspacing/2)
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      axis(side=1, at=tmpseq[c(k,k+1)]+c(2,-2), line=5.5, labels=NA, tck=-0.005)
-    }
-  }
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      mytext=myref[which(!duplicated(myref)|is.na(myref))][k]
-      tmp=sub(" \\(","&(", mytext)
-      split=strsplit(tmp, "&", perl=TRUE)
-      mytext1=split[[1]][1]
-      if (grepl("m\\^", mytext1)){
-        mytext1=gsub("m\\^","'~m^", mytext1)
-        mytext1=sub(")","~')", mytext1)
-      }
-      mytmp1=eval(parse(text=paste0("expression(","'", mytext1,"'",")")))
-      mytmp2=split[[1]][2]
-      mtext(mytmp1, side=1, at=mean(tmpseq[c(k,k+1)])-myspacing/2, line=5.8,  adj=1, cex=0.5,
-            las=2)
-      mtext(mytmp2, side=1, at=mean(tmpseq[c(k,k+1)])+myspacing/2, line=5.8,  adj=1, cex=0.4,
-            las=2)
-    }
-  }
-  legend("bottomright",inset=c(0,-0.27),lty=1, legend=models, col=mycolours, cex=0.6, bg="white")
-  # LASSO
-  par(mar=c(0, 0, 5.5, 0),xpd=FALSE)
-  plot(lasso, ylim=myrange, xlim=c(1,length(lasso)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(lasso, ylim=rev(myrange), type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(LASSO)", line=2, cex.lab=0.7)
-  par(xpd=TRUE)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  dev.off()
-} # Run this to make plot
+## Lung
+# Base
+xlim=c(0.4,1.6)
+ylim=c(0.4,1.6)
+lasso_beta_lung$var_cat=variable_cat
+lasso_beta_lung$label=1:(nrow(lasso_beta_lung))
+lasso_beta_lung$mycolour_point=rep(mycolours,times=c(18,20,8,16,28))
+lasso_beta_lung$mycolour_lab=darken(lasso_beta_lung$mycolour_point, amount=0.5)
+p1=ggplot(lasso_beta_lung,
+          aes(l1, h1, label=ifelse((abs(h1-1)<0.01&abs(l1-1)<0.01),"",mylabels))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+  geom_hline(aes(yintercept = 1),linetype = "dashed",colour = "black") +
+  geom_point(colour=lasso_beta_lung$mycolour_point) +
+  geom_label_repel(size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Mean Odds Ratio (High SES)")+
+  ylab("Mean Odds Ratio (Low SES)") +
+  ggtitle("Lung cancer: Base model")+
+  xlim(xlim) +
+  ylim(ylim) +
+  theme_bw() +
+  theme(legend.position = "none")
 
 
-## Low SES
-pi_spls=c(spls_hat_params_lunglow.1[2],spls_hat_params_lunglow.2[2]) # sPLS Selection proportion threshold
-pi_lasso=c(lasso_hat_params_lunglow.1[2],lasso_hat_params_lunglow.2[2]) # LASSO Selection proportion threshold
-file_path="lung_LowSES"
-spls=spls_selprop_lunglow
-lasso=lasso_selprop_lunglow
-background_colour="darkturquoise" # For lung
-{pdf(paste0("../Figures/Report/selprop_",file_path,".pdf"), height = 6, width = 11)
-  par(oma=c(1, 5, 3, 1), mfrow=c(2,1),las=0)
-  # sPLS
-  par(mar=c(5.5, 0, 0, 0),xpd=FALSE)
-  plot(spls,ylim=myrange, xlim=c(1,length(spls)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(spls, ylim=myrange, type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(sPLS)", line=2, cex.lab=0.7)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=xseqblack[c(k,k+1)]+c(2,-2), line=0.5, labels=NA)
-  }
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=mean(xseqblack[c(k,k+1)]), line=0.2, tick=FALSE,
-         labels=unique(variable_cat)[k])
-  }
-  par(xpd=TRUE)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  for (k in 1:length(xseq)){
-    mytext=mylabels[k]
-    if (grepl("m\\^", mytext)){
-      mytext=gsub("m\\^","'~m^", mytext)
-      mytext=sub(")","~')", mytext)
-    }
-    if (grepl("\\[", mytext)){
-      mytext=gsub("\\[","'[", mytext)
-      mytext=sub("\\(ug","~'(ug", mytext)
-    }
-    mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
-    if (is.na(myref)[k]){
-      myadj=0.5
-      mycex=0.5
-      myline=5.5
-    } else{
-      myadj=0
-      mycex=0.4
-      myline=5.2
-    }
-    par(xpd=TRUE)
-    mtext(side=1, mytmp, line=myline, at=xseq[k], adj=myadj, cex=mycex, las=2)
-  }
-  xseqgrey=xseq[which(!duplicated(myref)|is.na(myref))]-myspacing/2
-  tmpseq=c(xseqgrey,max(xseqgrey)-myspacing/2)
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      axis(side=1, at=tmpseq[c(k,k+1)]+c(2,-2), line=5.5, labels=NA, tck=-0.005)
-    }
-  }
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      mytext=myref[which(!duplicated(myref)|is.na(myref))][k]
-      tmp=sub(" \\(","&(", mytext)
-      split=strsplit(tmp, "&", perl=TRUE)
-      mytext1=split[[1]][1]
-      if (grepl("m\\^", mytext1)){
-        mytext1=gsub("m\\^","'~m^", mytext1)
-        mytext1=sub(")","~')", mytext1)
-      }
-      mytmp1=eval(parse(text=paste0("expression(","'", mytext1,"'",")")))
-      mytmp2=split[[1]][2]
-      mtext(mytmp1, side=1, at=mean(tmpseq[c(k,k+1)])-myspacing/2, line=5.8,  adj=1, cex=0.5,
-            las=2)
-      mtext(mytmp2, side=1, at=mean(tmpseq[c(k,k+1)])+myspacing/2, line=5.8,  adj=1, cex=0.4,
-            las=2)
-    }
-  }
-  legend("bottomright",inset=c(0,-0.27),lty=1, legend=models, col=mycolours, cex=0.6, bg="white")
-  # LASSO
-  par(mar=c(0, 0, 5.5, 0),xpd=FALSE)
-  plot(lasso, ylim=myrange, xlim=c(1,length(lasso)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(lasso, ylim=rev(myrange), type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(LASSO)", line=2, cex.lab=0.7)
-  par(xpd=TRUE)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  dev.off()
-} # Run this to make plot
+xlim=c(0.7,1.3)
+ylim=c(0.7,1.3)
+p2=ggplot(lasso_beta_lung,
+          aes(l2, h2, label=ifelse((abs(h2-1)<0.01&abs(l2-1)<0.01),"",label))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+  geom_hline(aes(yintercept = 1),linetype = "dashed",colour = "black") +
+  geom_point(colour=lasso_beta_lung$mycolour_point) +
+  geom_label_repel(color=lasso_beta_lung$mycolour_lab,
+                   size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = 0.001, nudge_x = 0.001,
+                   box.padding = 0.5,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Mean Odds Ratio (High SES)")+
+  ylab("Mean Odds Ratio (Low SES)") +
+  ggtitle("Lung cancer: Model removed effect of smoking")+
+  xlim(xlim) +
+  ylim(ylim) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+pdf("../Figures/Report/strat_townsend_lasso_lung_adjusted.pdf", width=5, height=5)
+p2
+dev.off()
+
+## Bladder
+# Base
+xlim=c(0.8,1.2)
+ylim=c(0.8,1.2)
+lasso_beta_bladder$var_cat=variable_cat
+lasso_beta_bladder$label=1:(nrow(lasso_beta_bladder))
+lasso_beta_bladder$mycolour_point=rep(mycolours,times=c(18,20,8,16,28))
+lasso_beta_bladder$mycolour_lab=darken(lasso_beta_bladder$mycolour_point, amount=0.5)
+p3=ggplot(lasso_beta_bladder,
+          aes(l1, h1, label=ifelse((abs(h1-1)<0.01&abs(l1-1)<0.01),"",mylabels))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+  geom_hline(aes(yintercept = 1),linetype = "dashed",colour = "black") +
+  geom_point(colour=lasso_beta_bladder$mycolour_point) +
+  geom_label_repel(size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Mean Odds Ratio (High SES)")+
+  ylab("Mean Odds Ratio (Low SES)") +
+  ggtitle("Bladder cancer: Base model")+
+  xlim(xlim) +
+  ylim(ylim) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+xlim=c(0.8,1.2)
+ylim=c(0.8,1.2)
+p4=ggplot(lasso_beta_bladder,
+          aes(l2, h2, label=ifelse((abs(h2-1)<0.01&abs(l2-1)<0.01),"",mylabels))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+  geom_hline(aes(yintercept = 1),linetype = "dashed",colour = "black") +
+  geom_point(colour=lasso_beta_bladder$mycolour_point) +
+  geom_label_repel(color=lasso_beta_lung$mycolour_lab,
+                   size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = 0.001, nudge_x = 0.001,
+                   box.padding = 0.5,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Mean Odds Ratio (High SES)")+
+  ylab("Mean Odds Ratio (Low SES)") +
+  ggtitle("Bladder cancer: Model removed effect of smoking")+
+  xlim(xlim) +
+  ylim(ylim) +
+  theme_bw() +
+  theme(legend.position = "none")
 
 
-# Bladder
-pi_spls=c(spls_hat_params_bladderlow.1[2],spls_hat_params_bladderlow.2[2]) # sPLS Selection proportion threshold
-pi_lasso=c(lasso_hat_params_bladderlow.1[2],lasso_hat_params_bladderlow.2[2]) # LASSO Selection proportion threshold
-file_path="bladder_LowSES"
-spls=spls_selprop_bladderlow
-lasso=lasso_selprop_bladderlow
-background_colour="hotpink" # For bladder
-{pdf(paste0("../Figures/Report/selprop_",file_path,".pdf"), height = 6, width = 11)
-  par(oma=c(1, 5, 3, 1), mfrow=c(2,1),las=0)
-  # sPLS
-  par(mar=c(5.5, 0, 0, 0),xpd=FALSE)
-  plot(spls,ylim=myrange, xlim=c(1,length(spls)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(spls, ylim=myrange, type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(sPLS)", line=2, cex.lab=0.7)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=xseqblack[c(k,k+1)]+c(2,-2), line=0.5, labels=NA)
-  }
-  for (k in 1:(length(xseqblack)-1)){
-    axis(side=3, at=mean(xseqblack[c(k,k+1)]), line=0.2, tick=FALSE,
-         labels=unique(variable_cat)[k])
-  }
-  par(xpd=TRUE)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  for (k in 1:length(xseq)){
-    mytext=mylabels[k]
-    if (grepl("m\\^", mytext)){
-      mytext=gsub("m\\^","'~m^", mytext)
-      mytext=sub(")","~')", mytext)
-    }
-    if (grepl("\\[", mytext)){
-      mytext=gsub("\\[","'[", mytext)
-      mytext=sub("\\(ug","~'(ug", mytext)
-    }
-    mytmp=eval(parse(text=paste0("expression(","'", mytext,"'",")")))
-    if (is.na(myref)[k]){
-      myadj=0.5
-      mycex=0.5
-      myline=5.5
-    } else{
-      myadj=0
-      mycex=0.4
-      myline=5.2
-    }
-    par(xpd=TRUE)
-    mtext(side=1, mytmp, line=myline, at=xseq[k], adj=myadj, cex=mycex, las=2)
-  }
-  xseqgrey=xseq[which(!duplicated(myref)|is.na(myref))]-myspacing/2
-  tmpseq=c(xseqgrey,max(xseqgrey)-myspacing/2)
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      axis(side=1, at=tmpseq[c(k,k+1)]+c(2,-2), line=5.5, labels=NA, tck=-0.005)
-    }
-  }
-  for (k in 1:(length(tmpseq)-1)){
-    if (!is.na(myref[which(!duplicated(myref)|is.na(myref))])[k]){
-      mytext=myref[which(!duplicated(myref)|is.na(myref))][k]
-      tmp=sub(" \\(","&(", mytext)
-      split=strsplit(tmp, "&", perl=TRUE)
-      mytext1=split[[1]][1]
-      if (grepl("m\\^", mytext1)){
-        mytext1=gsub("m\\^","'~m^", mytext1)
-        mytext1=sub(")","~')", mytext1)
-      }
-      mytmp1=eval(parse(text=paste0("expression(","'", mytext1,"'",")")))
-      mytmp2=split[[1]][2]
-      mtext(mytmp1, side=1, at=mean(tmpseq[c(k,k+1)])-myspacing/2, line=5.8,  adj=1, cex=0.5,
-            las=2)
-      mtext(mytmp2, side=1, at=mean(tmpseq[c(k,k+1)])+myspacing/2, line=5.8,  adj=1, cex=0.4,
-            las=2)
-    }
-  }
-  legend("bottomright",inset=c(0,-0.27),lty=1, legend=models, col=mycolours, cex=0.6, bg="white")
-  # LASSO
-  par(mar=c(0, 0, 5.5, 0),xpd=FALSE)
-  plot(lasso, ylim=myrange, xlim=c(1,length(lasso)), type="n",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="",xlab="")
-  xseqgreysep=c(min(xseq)-myspacing/2,apply(rbind(xseq[-1],xseq[-length(xseq)]),2,mean),max(xseq)+myspacing/2)
-  if (background){
-    for (k in seq(1,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.95), border=NA)
-    }
-    for (k in seq(2,length(xseqgreysep),by=2)){
-      polygon(x=c(xseqgreysep[k],xseqgreysep[k+1],xseqgreysep[k+1],xseqgreysep[k]),
-              y=c(-10,-10,10,10), col=lighten(background_colour,0.99), border=NA)
-    }
-    box()
-  }
-  par(new=TRUE)
-  plot(lasso, ylim=rev(myrange), type="h",
-       xaxt="n", yaxt="n",
-       col=c(NA, mycolours[1], NA, mycolours[2],NA),
-       lwd=1, ylab="", xlab="")
-  abline(h=pi_spls, lty=4, lwd=0.5, col=mycolours)
-  axis(side=2, at=axTicks(2), cex.axis=0.7)
-  mtext(side=2, text="Selection Proportion\n(LASSO)", line=2, cex.lab=0.7)
-  par(xpd=TRUE)
-  xseqblack=c(xseq[!duplicated(variable_cat)]-myspacing/2, max(xseq)+myspacing/2)
-  abline(v=xseqblack,lty=3,col="black",lwd=0.5)
-  abline(v=xseqgreysep,lty=1,lwd=0.1,col="grey")
-  dev.off()
-} # Run this to make plot
+pdf("../Figures/Report/strat_townsend_lasso_bladder_adjusted.pdf", width=5, height=5)
+p4
+dev.off()
 
-
-# # Make legend
-# pdf("../Figures/strat_townsend_viz/selprop_legend.pdf", width=4, height=1)
-# par(mar=c(1,1,1,1), mfrow=c(1,1), xpd=TRUE)
-# plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-# legend("center",lty=1, lwd=1, legend=models, col=mycolours)
-# dev.off()
-
-
-### Beta plot----
+### Loading coefficient plot----
 variable_cat=c(rep("Sociodemographic",18),
-               rep("Health risk", 28),
+               rep("Health risk", 20),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
-mycolours=c("grey50","forestgreen" ,"tomato","royalblue","gold")
-## HighSES
-# Lung
-xlim=c(0.25,1.75)
-ylim=c(-0.25,0.75)
-beta_lunghigh$var_cat=rep(variable_cat,2)
-beta_lunghigh$label=rep(1:(nrow(beta_lunghigh)/2), 2)
-beta_lunghigh$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
-beta_lunghigh$mycolour_lab=darken(beta_lunghigh$mycolour_point, amount=0.5)
-p1=ggplot(beta_lunghigh, aes(or, load,
-                           label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
-                                        "",label))) +
-  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+mycolours=c("grey50" ,"tomato","forestgreen","royalblue","gold")
+
+## Lung
+# Base
+xlim=c(-0.75,0.75)
+ylim=c(-0.75,0.75)
+spls_beta_lung$var_cat=variable_cat
+spls_beta_lung$label=1:(nrow(spls_beta_lung))
+spls_beta_lung$mycolour_point=rep(mycolours,times=c(18,20,8,16,28))
+spls_beta_lung$mycolour_lab=darken(spls_beta_lung$mycolour_point, amount=0.5)
+p5=ggplot(spls_beta_lung,
+          aes(l1, h1, label=ifelse((abs(h1)<0.01&abs(l1)<0.01),"",mylabels))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 0),linetype = "dashed",colour = "black") +
   geom_hline(aes(yintercept = 0),linetype = "dashed",colour = "black") +
-  geom_point(aes(shape=model),colour=beta_lunghigh$mycolour_point) +
-  scale_shape_manual(values=c(17, 19)) +
-  geom_text_repel(color=beta_lunghigh$mycolour_lab,
-                  nudge_y = 0.02,
-                  nudge_x = 0.02,
-                  size=3, segment.color="grey",
-                  segment.size=0.2) +
-  xlab("Odds Ratio (LASSO)")+
-  ylab("Loading Coefficient (sPLS)") +
-  ggtitle("HighSES: Lung cancer")+
+  geom_point(colour=spls_beta_lung$mycolour_point) +
+  geom_label_repel(size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Loading coefficient (High SES)")+
+  ylab("Loading coefficient (Low SES)") +
+  ggtitle("Lung cancer: Base model")+
   xlim(xlim) +
   ylim(ylim) +
   theme_bw() +
   theme(legend.position = "none")
 
-# Bladder
-xlim=c(0.5,1.5)
-ylim=c(-0.25,0.55)
-beta_bladderhigh$var_cat=rep(variable_cat,2)
-beta_bladderhigh$label=rep(1:(nrow(beta_bladderhigh)/2), 2)
-beta_bladderhigh$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
-beta_bladderhigh$mycolour_lab=darken(beta_bladderhigh$mycolour_point, amount=0.5)
-p2=ggplot(beta_bladderhigh, aes(or, load, label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
-                                                     "",label))) +
-  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+xlim=c(-0.5,0.5)
+ylim=c(-0.5,0.5)
+p6=ggplot(spls_beta_lung,
+          aes(l2, h2, label=ifelse((abs(h2)<0.01&abs(l2)<0.01),"",label))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 0),linetype = "dashed",colour = "black") +
   geom_hline(aes(yintercept = 0),linetype = "dashed",colour = "black") +
-  geom_point(aes(shape=model),colour=beta_bladderhigh$mycolour_point) +
-  scale_shape_manual(values=c(17, 19)) +
-  geom_text_repel(color=beta_bladderhigh$mycolour_lab,
-                  nudge_y = 0.02,
-                  nudge_x = 0.02,
-                  size=3, segment.color="grey",
-                  segment.size=0.2) +
-  xlab("Odds Ratio (LASSO)")+
-  ylab("Loading Coefficient (sPLS)") +
-  ggtitle("HighSES: Bladder cancer")+
+  geom_point(colour=spls_beta_lung$mycolour_point) +
+  geom_label_repel(color=lasso_beta_lung$mycolour_lab,
+                   size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Loading coefficient (High SES)")+
+  ylab("Loading coefficient (Low SES)") +
+  ggtitle("Lung cancer: Model removed effect of smoking")+
   xlim(xlim) +
   ylim(ylim) +
   theme_bw() +
   theme(legend.position = "none")
 
-## LowSES
-# Lung
-xlim=c(0.25,1.75)
-ylim=c(-0.25,0.75)
-beta_lunglow$var_cat=rep(variable_cat,2)
-beta_lunglow$label=rep(1:(nrow(beta_lunglow)/2), 2)
-beta_lunglow$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
-beta_lunglow$mycolour_lab=darken(beta_lunglow$mycolour_point, amount=0.5)
-p3=ggplot(beta_lunglow, aes(or, load,
-                           label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
-                                        "",label))) +
-  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+## Bladder
+# Base
+xlim=c(-0.3,0.3)
+ylim=c(-0.3,0.3)
+spls_beta_bladder$var_cat=variable_cat
+spls_beta_bladder$label=1:(nrow(spls_beta_bladder))
+spls_beta_bladder$mycolour_point=rep(mycolours,times=c(18,20,8,16,28))
+spls_beta_bladder$mycolour_lab=darken(spls_beta_bladder$mycolour_point, amount=0.5)
+p7=ggplot(spls_beta_bladder,
+          aes(l1, h1, label=ifelse((abs(h1)<0.01&abs(l1)<0.01),"",mylabels))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 0),linetype = "dashed",colour = "black") +
   geom_hline(aes(yintercept = 0),linetype = "dashed",colour = "black") +
-  geom_point(aes(shape=model),colour=beta_lunglow$mycolour_point) +
-  scale_shape_manual(values=c(17, 19)) +
-  geom_text_repel(color=beta_lunglow$mycolour_lab,
-                  nudge_y = 0.02,
-                  nudge_x = 0.02,
-                  size=3, segment.color="grey",
-                  segment.size=0.2) +
-  xlab("Odds Ratio (LASSO)")+
-  ylab("Loading Coefficient (sPLS)") +
-  ggtitle("LowSES: Lung cancer")+
+  geom_point(colour=spls_beta_bladder$mycolour_point) +
+  geom_label_repel(size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Loading coefficient (High SES)")+
+  ylab("Loading coefficient (Low SES)") +
+  ggtitle("Bladder cancer: Base model")+
   xlim(xlim) +
   ylim(ylim) +
   theme_bw() +
   theme(legend.position = "none")
 
-# Bladder
-xlim=c(0.5,1.5)
-ylim=c(-0.25,0.55)
-beta_bladderlow$var_cat=rep(variable_cat,2)
-beta_bladderlow$label=rep(1:(nrow(beta_bladderlow)/2), 2)
-beta_bladderlow$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
-beta_bladderlow$mycolour_lab=darken(beta_bladderlow$mycolour_point, amount=0.5)
-p4=ggplot(beta_bladderlow, aes(or, load, label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
-                                                     "",label))) +
-  geom_vline(aes(xintercept = 1),linetype = "dashed",colour = "black") +
+xlim=c(-0.2,0.2)
+ylim=c(-0.2,0.2)
+p8=ggplot(spls_beta_bladder,
+          aes(l2, h2, label=ifelse((abs(h2)<0.01&abs(l2)<0.01),"",label))) +
+  geom_abline(slope = 1,linetype = "dotted",colour = "grey") +
+  geom_vline(aes(xintercept = 0),linetype = "dashed",colour = "black") +
   geom_hline(aes(yintercept = 0),linetype = "dashed",colour = "black") +
-  geom_point(aes(shape=model),colour=beta_bladderlow$mycolour_point) +
-  scale_shape_manual(values=c(17, 19)) +
-  geom_text_repel(color=beta_bladderlow$mycolour_lab,
-                  nudge_y = 0.02,
-                  nudge_x = 0.02,
-                  size=3, segment.color="grey",
-                  segment.size=0.2) +
-  xlab("Odds Ratio (LASSO)")+
-  ylab("Loading Coefficient (sPLS)") +
-  ggtitle("Low SES: Bladder cancer")+
+  geom_point(colour=spls_beta_bladder$mycolour_point) +
+  geom_label_repel(color=lasso_beta_bladder$mycolour_lab,
+                   size=3.5, segment.colour = "grey",
+                   segment.size = 0.5, max.overlaps = Inf,
+                   nudge_y = -0.001, nudge_x = 0.001,
+                   box.padding = 1,
+                   label.size = NA, label.padding=.1, na.rm=TRUE, fill = alpha(c("white"),0.99)) +
+  xlab("Loading coefficient (High SES)")+
+  ylab("Loading coefficient (Low SES)") +
+  ggtitle("Bladder cancer: Model removed effect of smoking")+
   xlim(xlim) +
   ylim(ylim) +
   theme_bw() +
   theme(legend.position = "none")
 
 
-library(cowplot)
-pdf("../Figures/Report/or_load_grid_townsend.pdf", width=10, height=10)
-plot_grid(p1, p3, p2, p4, nrow = 2, labels = c('A', 'B','C','D'))
-# extract the legend from one of the plots
+pdf("../Figures/Report/strat_townsend_lasso_adjust.pdf", width=10, height=5)
+plot_grid(p2,p4, nrow = 1, labels = c('A', 'B'))
 dev.off()
 
-pdf("../Figures/Presentation/or_load_grid_townsend.pdf", width=20, height=5)
-plot_grid(p1, p3, p2, p4, nrow = 1)
-# extract the legend from one of the plots
+pdf("../Figures/Report/strat_townsend_spls_lung_adjust.pdf", width=5, height=5)
+plot_grid(p6, nrow = 1)
 dev.off()
 
-# Make legend
-pdf("../Figures/Report/or_load_grid_legend_townsend.pdf", width=3.5, height=10.5)
-par(mar=c(1,1,1,1), mfrow=c(1,1), xpd=TRUE)
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft",pch=c(17,19, rep(NA,length(myorder))),
-       legend=c(models,mapply(function(x,n){
-         x=paste0(n," - ",x)
-         if (grepl("m\\^", x)){
-           x=gsub("m\\^","'~m^", x)
-           x=sub(")","~')", x)
-         }
-         if (grepl("\\[", x)){
-           x=gsub("\\[","'[", x)
-           x=sub("\\(ug","~'(ug", x)
-         }
-         eval(parse(text=paste0("expression(","'", x,"'",")")))
-       }, plot_annot$label_ref, 1:length(myorder))),
-       bty="n",text.col = c(lighten("black",amount=0.2),"black",rep("grey50",18),
-                            rep("tomato", 28),
-                            rep("forestgreen", 8),
-                            rep("royalblue", 16), 
-                            rep("gold", 28)), cex=0.5)
+pdf("../Figures/Report/strat_townsend_spls_bladder_adjust.pdf", width=5, height=5)
+plot_grid(p8, nrow = 1)
 dev.off()
 
-pdf("../Figures/Presentation/or_load_grid_legend_townsend.pdf", width=11, height=3)
-par(mar=c(1,1,1,1), mfrow=c(1,1), xpd=TRUE)
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft",pch=c(17,19, rep(NA,length(myorder))),
-       legend=c(models,mapply(function(x,n){
-         x=paste0(n," - ",x)
-         if (grepl("m\\^", x)){
-           x=gsub("m\\^","'~m^", x)
-           x=sub(")","~')", x)
-         }
-         if (grepl("\\[", x)){
-           x=gsub("\\[","'[", x)
-           x=sub("\\(ug","~'(ug", x)
-         }
-         eval(parse(text=paste0("expression(","'", x,"'",")")))
-       }, plot_annot$label_ref, 1:length(myorder))),
-       bty="n",text.col = c(lighten("black",amount=0.2),"black",
-                            darken(c(rep("grey50",18),
-                                     rep("tomato", 28),
-                                     rep("forestgreen", 8),
-                                     rep("royalblue", 16), 
-                                     rep("gold", 28)), 0.5)), cex=0.5, ncol=4, text.width=0.3)
+
+pdf("../Figures/Final/Supplementary/strat_townsend_or.pdf", width=10, height=10)
+plot_grid(p1, p2, p3, p4, nrow = 2, labels = c('A', 'B','C','D'))
 dev.off()
+
+pdf("../Figures/Final/Supplementary/strat_townsend_lc.pdf", width=10, height=10)
+plot_grid(p5, p6, p7, p8, nrow = 2, labels = c('A', 'B','C','D'))
+dev.off()
+
+
+pdf("../Figures/Final/Supplementary/strat_townsend_or_1row.pdf", width=20, height=5)
+plot_grid(p1, p2, p3, p4, nrow = 1)
+dev.off()
+
+pdf("../Figures/Final/Supplementary/strat_townsend_lc_1row.pdf", width=20, height=5)
+plot_grid(p5, p6, p7, p8, nrow = 1)
+dev.off()
+

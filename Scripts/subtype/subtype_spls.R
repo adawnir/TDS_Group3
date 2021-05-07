@@ -22,8 +22,8 @@ m=as.numeric(args[1])
 
 
 ## Load data set
-arr=paste0(rep(c("mal.lower","mal.upper","mal.lung"),each=2),".",1:2)[m] ### Change name for other stratification
-dat=readRDS(paste0("../Results/strat_site_denoised/",arr,"_denoised.rds")) ### Change path for other stratification
+arr=paste0(rep(c("mal.lower","mal.upper"),each=2),".",1:2)[m] ### Change name for other stratification
+dat=readRDS(paste0("../Results/strat_site_split/",arr,"_denoised.rds")) ### Change path for other stratification
 
 ## Make data set
 y=dat$case_status

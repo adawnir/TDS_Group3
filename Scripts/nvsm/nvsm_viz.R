@@ -16,8 +16,8 @@ source("penalisation_functions.R")
 
 ### Plot labels----
 plot_annot=read_csv("../Dictionaries/plot_annot.csv")
-plot_annot=plot_annot[-c(1,2,21:25),] # Remove age, sex and BMI
-
+plot_annot=plot_annot[-c(1,2,21:25,50:53),] # Remove age, sex and BMI & smoking categories
+plot_annot=plot_annot
 
 ### Load outputs ----
 for (m in 1:2){

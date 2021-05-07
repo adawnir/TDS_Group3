@@ -1,5 +1,5 @@
 ### TDS Project -- Recoding comorbidities
-## Programme created by Rin Wada on 9 Feb 2021 reviewed 24 Feb 2021
+## Programme created by Rin Wada on 24 Feb 2021
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"

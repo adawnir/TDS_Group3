@@ -1,4 +1,4 @@
-### TDS Project -- Recoding outcome Exclude all prevante cancer cases from study
+### TDS Project -- Recoding outcome
 ## Programme created by Rin Wada on 23 Feb 2021
 
 rm(list=ls())

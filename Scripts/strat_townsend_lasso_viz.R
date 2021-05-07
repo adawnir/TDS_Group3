@@ -71,7 +71,8 @@ selprop_bladder$selprop_bladderlow.1=selprop_bladderlow.1[match(rownames(selprop
 selprop_bladder$selprop_bladderlow.2=selprop_bladderlow.2[match(rownames(selprop_bladder),
                                                               names(selprop_bladderlow.2))]
 # Reorder rows
-myorder=plot_annot$col.name
+colnames=names(selprop_lunghigh.1)
+myorder=c(colnames[5:46],colnames[1:4],colnames[47:length(colnames)])
 selprop_lung = selprop_lung %>%
   slice(match(myorder,rownames(selprop_lung)))
 selprop_bladder = selprop_bladder %>%
@@ -141,7 +142,8 @@ beta_bladder$beta_bladderlow.1=beta_bladderlow.1[match(rownames(beta_bladder),
 beta_bladder$beta_bladderlow.2=beta_bladderlow.2[match(rownames(beta_bladder),
                                                      names(beta_bladderlow.2))]
 # Reorder rows
-myorder=plot_annot$col.name
+colnames=names(selprop_lunghigh.1)
+myorder=c(colnames[5:46],colnames[1:4],colnames[47:length(colnames)])
 beta_lung = beta_lung %>%
   slice(match(myorder,rownames(beta_lung)))
 beta_bladder = beta_bladder %>%
@@ -156,8 +158,8 @@ variable_cat=c(rep("Sociodemographic",18),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
-models=c("Female: Base model", "Female: Model adjusted on smoking status",
-         "Male: Base model", "Male: Model adjusted on smoking status")
+models=c("High SES: Base model", "High SES: Model adjusted on smoking status",
+         "Low SES: Base model", "Low SES: Model adjusted on smoking status")
 mycolours=c("lightcoral", darken("lightcoral",amount=0.5),"steelblue",darken("steelblue", amount=0.5))
 
 pi=c(hat_params_lunghigh.1[2],hat_params_lunghigh.2[2],hat_params_lunglow.1[2],hat_params_lunglow.2[2])
@@ -304,8 +306,8 @@ variable_cat=c(rep("Sociodemographic",18),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
-models=c("Female: Base model", "Female: Model adjusted on smoking status",
-         "Male: Base model", "Male: Model adjusted on smoking status")
+models=c("High SES: Base model", "High SES: Model adjusted on smoking status",
+         "Low SES: Base model", "Low SES: Model adjusted on smoking status")
 mycolours=c("lightcoral", darken("lightcoral",amount=0.5),"steelblue",darken("steelblue", amount=0.5))
 myspacing=9
 xseq=seq(5,length(myorder)*myspacing, by=myspacing)

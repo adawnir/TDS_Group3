@@ -1,0 +1,95 @@
+﻿label,ref,label_ref,label.point
+Age,NA,Age,Age
+Sex: Male (ref. Female),NA,Sex: Male (ref. Female),Sex (Male)
+Ethnicity Non-white (ref. White),NA,Ethnicity: Non-white (ref. White),Ethnicity (Non-white)
+Townsend deprivation index,NA,Townsend deprivation index,Townsend deprivation index
+Active,Employment status (ref. Employed),Employment status: Active (ref. Employed),Employment (Active)
+Retired,Employment status (ref. Employed),Employment status Retired (ref. Employed),Employment (Retired)
+Unable to work,Employment status (ref. Employed),Employment status: Unable to work (ref. Employed),Employment (Unable to work)
+Unemployed,Employment status (ref. Employed),Employment status: Unemployed (ref. Employed),Employment (Unemployed)
+Low,Education (ref. Intermediate),Education: Low (ref. Intermediate),Education (Low)
+High,Education (ref. Intermediate),Education: High (ref. Intermediate),Education (High)
+Flat,Type of accommodation (ref. House),Type of accommodation: Flat (ref. House),Type of accommodation (Flat)
+Other,Type of accommodation (ref. House),Type of accommodation: Other (ref. House),Type of accommodation (Other)
+Rent,Own or rent (ref. Own),Own or rent: Rent (ref. Own),Own or rent (Rent)
+Other,Own or rent (ref. Own),Own or rent: (ref. Own),Own or rent (Other)
+1,# in household (ref. 2),# in household: 1 (ref. 2),# in HH (1)
+3 to 4,# in household (ref. 2),# in household: 3 to 4 (ref. 2),# in HH (3 to 4)
+>=5,# in household (ref. 2),# in household: >=5 (ref. 2),# in HH (>=5)
+"<18,000","Average income (GBP) (ref. 18,000-30,999)","Average income (GBP): <18,000 (ref. 18,000-30,999)","HH income (<18,000)"
+"31,000-51,999","Average income (GBP) (ref. 18,000-30,999)","Average income (GBP): 31,000-51,999 (ref. 18,000-30,999)","HH income (31,000-51,999)"
+">=52,000","Average income (GBP) (ref. 18,000-30,999)","Average income (GBP): >=52,000 (ref. 18,000-30,999)","HH income (>=52,000)"
+Underweight,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Underweight (ref. Normal),BMI (Underweight)
+Pre-obesity,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Pre-obesity (ref. Normal),BMI (Pre-obesity)
+Obesity class I,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class I (ref. Normal),BMI (Obesity class I)
+Obesity class II,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class II (ref. Normal),BMI (Obesity class II)
+Obesity class III,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class IIII (ref. Normal),BMI (Obesity class III)
+Physical activity score 1,NA,Physical activity score 1,Physical activity score 1
+Physical activity score 2,NA,Physical activity score 2,Physical activity score 2
+<=6,Sleep per 24 hours (hours) (ref. 7-8),Sleep per 24 hours (hours): <=6 (ref. 7-8),Sleep (<=6)
+>=9,Sleep per 24 hours (hours) (ref. 7-8),Sleep per 24 hours (hours) >=9 (ref. 7-8),Sleep (>=9)
+Dietary intake score 1,NA,Dietary intake score 1,Dietary intake score 1
+Dietary intake score 2,NA,Dietary intake score 2,Dietary intake score 2
+Dietary intake score 3,NA,Dietary intake score 3,Dietary intake score 3
+Dietary intake score 4,NA,Dietary intake score 4,Dietary intake score 4
+Dietary intake score 5,NA,Dietary intake score 5,Dietary intake score 5
+Sometimes,Salt added to food,Salt added to food: Sometimes,Salt (Sometimes)
+Usually,Salt added to food,Salt added to food: Usually,Salt (Usually)
+Always,Salt added to food,Salt added to food: Always,Salt (Always)
+Beverage intake score 1,NA,Beverage intake score 1,Beverage intake score 1
+Beverage intake score 2,NA,Beverage intake score 2,Beverage intake score 2
+Occasionally,Alcohol intake frequency (ref. Never/rarely),Alcohol intake frequency: Occasionally (ref. Never/rarely),Alcohol (Occasionally)
+Regularly,Alcohol intake frequency (ref. Never/rarely),Alcohol intake frequency: Regularly (ref. Never/rarely),Alcohol (Regularly)
+Smoker in household (ref. No),NA,Smoker in household (ref. No),Smoker in household
+Maternal smoking around birth (ref. No),NA,Maternal smoking around birth (ref. No),Maternal smoking around birth
+NO[2] (ug/m^3),NA,NO[2] (ug/m^3),NO2
+NO[x] (ug/m^3),NA,NO[x] (ug/m^3),NOx
+PM 10 (ug/m^3),NA,PM 10 (ug/m^3),PM 10
+PM 2.5 (Absorbance/m),NA,PM 2.5 (Absorbance/m),PM 2.5 absorbance
+PM 2.5 (ug/m^3),NA,PM 2.5 (ug/m^3),PM 2.5
+PM 2.5-10 (ug/m^3),NA,PM 2.5-10 (ug/m^3),PM 2.5-10
+Close to major road (ref. No),NA,Close to major road (ref. No),Close to major road
+1,# of medications (ref. 0),# of medications: 1 (ref. 0),# of med (1)
+>1,# of medications (ref. 0),# of medications: >1 (ref. 0),# of med (>1)
+COPD,Parental history (ref. No),Parental history of COPD (ref. No),Parent (COPD)
+Diabetes,Parental history (ref. No),Parental history of Diabetes (ref. No),Parent (Diabetes)
+Hypertension,Parental history (ref. No),Parental history of Hypertension (ref. No),Parent (Hypertension)
+Stroke,Parental history (ref. No),Parental history of Stroke (ref. No),Parent (Stroke)
+CHD,Parental history (ref. No),Parental history of CHD (ref. No),Parent (CHD)
+Breast cancer,Parental history (ref. No),Parental history of Breast cancer (ref. No),Parent (Breast cancer)
+Bowel cancer,Parental history (ref. No),Parental history of Bowel cancer (ref. No),Parent (Bowel cancer)
+Lung cancer,Parental history (ref. No),Parental history of Lung cancer (ref. No),Parent (Lung cancer)
+Prostate cancer,Parental history (ref. No),Parental history of Prostate cancer(ref. No),Parent (Prostate cancer)
+Cardiovascular,Medical history (ref. No),Cardiovascular (ref. No),Cardiovascular
+Hypertension,Medical history (ref. No),Hypertension (ref. No),Hypertension
+Diabetes,Medical history (ref. No),Diabetes (ref. No),Diabetes
+Respiratory,Medical history (ref. No),Respiratory (ref. No),Respiratory
+Autoimmune,Medical history (ref. No),Autoimmune (ref. No),Autoimmune
+Alanine aminotransferase,NA,Alanine aminotransferase,Alanine aminotransferase
+Albumin,NA,Albumin,Albumin
+Alkaline phosphatase,NA,Alkaline phosphatase,Alkaline phosphatase
+Apolipoprotein A,NA,Apolipoprotein A,Apolipoprotein A
+Apolipoprotein B,NA,Apolipoprotein B,Apolipoprotein B
+Aspartate aminotransferase,NA,Aspartate aminotransferase,Aspartate aminotransferase
+C-reactive protein,NA,C-reactive protein,C-reactive protein
+Calcium,NA,Calcium,Calcium
+Cholesterol,NA,Cholesterol,Cholesterol
+Creatinine,NA,Creatinine,Creatinine
+Cystatin C,NA,Cystatin C,Cystatin C
+Direct bilirubin,NA,Direct bilirubin,Direct bilirubin
+Gamma glutamyltransferase,NA,Gamma glutamyltransferase,Gamma glutamyltransferase
+Glucose,NA,Glucose,Glucose
+Glycated haemoglobin (HbA1c),NA,Glycated haemoglobin (HbA1c),Glycated haemoglobin (HbA1c)
+HDL cholesterol,NA,HDL cholesterol,HDL cholesterol
+IGF-1,NA,IGF-1,IGF-1
+LDL direct,NA,LDL direct,LDL direct
+Lipoprotein A,NA,Lipoprotein A,Lipoprotein A
+Phosphate,NA,Phosphate,Phosphate
+SHBG,NA,SHBG,SHBG
+Testosterone,NA,Testosterone,Testosterone
+Total bilirubin,NA,Total bilirubin,Total bilirubin
+Total protein,NA,Total protein,Total protein
+Triglycerides,NA,Triglycerides,Triglycerides
+Urate,NA,Urate,Urate
+Urea,NA,Urea,Urea
+Vitamin D,NA,Vitamin D,Vitamin D

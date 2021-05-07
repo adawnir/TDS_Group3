@@ -21,8 +21,8 @@ args=commandArgs(trailingOnly=TRUE)
 m=as.numeric(args[1])
 
 ## Load data set
-arr=paste0(rep(c("mal.lung","mal.lower","mal.upper"),each=2),".",1:2)[m]
-dat=readRDS(paste0("../Results/strat_site_denoised/",arr,"_denoised.rds"))
+arr=paste0(rep(c("mal.lower","mal.upper"),each=2),".",1:2)[m]
+dat=readRDS(paste0("../Results/strat_site_split/",arr,"_denoised.rds"))
 
 ## Make data set
 y=dat$case_status

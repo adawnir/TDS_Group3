@@ -16,7 +16,7 @@ cc=readRDS("../Results/case_control.rds")
 # Restructure data - case/control status in first column
 colnames(covar)
 covar = covar %>%
-  select((eid:sex), bmi,smoking,(ethnic:hh_income),(phys_score:alcohol),
+  select((eid:sex), bmi,smoking,(ethnic:hh_income),(phys_PC1:alcohol),
          (mat_smoke:autoimmune))
 
 mydata=cc %>% select(eid, case_status) %>%
@@ -45,6 +45,24 @@ lung.f=lung_data[lung_data$sex=="Female",]
 lung.m=lung_data[lung_data$sex=="Male",]
 bladder.f=bladder_data[bladder_data$sex=="Female",]
 bladder.m=bladder_data[bladder_data$sex=="Male",]
+
+# Subsample data sets: adjust case size to smaller data set (lung vs bladder)
+table(lung.f$case_status)
+table(lung.m$case_status)
+table(bladder.f$case_status)
+table(bladder.m$case_status)
+
+set.seed(100)
+s1=sample(which(lung.f$case_status=="1"),
+          size=sum(bladder.f$case_status=="1"), replace=FALSE)
+sub=c(s1,which(lung.f$case_status=="0"))
+lung.f=lung.f[sub,]
+
+set.seed(100)
+s1=sample(which(bladder.m$case_status=="1"),
+          size=sum(lung.m$case_status=="1"), replace=FALSE)
+sub=c(s1,which(bladder.m$case_status=="0"))
+bladder.m=bladder.m[sub,]
 
 ### Logistic regression----
 # Get beta coefficients, standard errors, glm p-values and anova p-values

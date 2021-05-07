@@ -1,0 +1,91 @@
+﻿cat,var,level
+Sociodemographic,Ethnicity Non-white (ref. White),NA
+,Townsend deprivation index,NA
+,Employment status (ref. Employed),Active
+,NA,Retired
+,NA,Unable to work
+,NA,Unemployed
+,Education (ref. Intermediate),Low
+,NA,High
+,Type of accommodation (ref. House),Flat
+,NA,Other
+,Own or rent (ref. Own),Rent
+,NA,Other
+,# in household (ref. 2),1
+,NA,3 to 4
+,NA,>=5
+,"Average income (GBP) (ref. 18,000-30,999)","<18,000"
+,NA,"31,000-51,999"
+,NA,">=52,000"
+Health risk,Physical activity score 1,NA
+,Physical activity score 2,NA
+,Sleep per 24 hours (hours) (ref. 7-8),<=6
+,NA,>=9
+,Dietary intake score 1,NA
+,Dietary intake score 2,NA
+,Dietary intake score 3,NA
+,Dietary intake score 4,NA
+,Dietary intake score 5,NA
+,Salt added to food,Sometimes
+,NA,Usually
+,NA,Always
+,Beverage intake score 1,NA
+,Beverage intake score 2,NA
+,Alcohol intake frequency (ref. Never/rarely),Occasionally
+,NA,Regularly
+,Smoking status (ref. Never - No smoker in HH),"Never  - Yes, smoker in HH"
+,NA,Previous - No smoker in HH
+,NA,"Previous - Yes, smoker in HH"
+,NA,Current
+Environmental,Maternal smoking around birth (ref. No),NA
+,NO2 (ug/m3),NA
+,NOX (ug/m3),NA
+,PM 10  (ug/m3),NA
+,PM 2.5 (Absorbance/m),NA
+,PM 2.5 (ug/m3),NA
+,PM 2.5-10 (ug/m3),NA
+,Close to major road (ref. No),NA
+Medical,# of medications (ref. 0),1
+,NA,>1
+,Parental history (ref. No),COPD
+,NA,Diabetes
+,NA,Hypertension
+,NA,Stroke
+,NA,CHD
+,NA,Breast cancer
+,NA,Bowel cancer
+,NA,Lung cancer
+,NA,Prostate cancer
+,Medical history (ref. No),Cardiovascular
+,NA,Hypertension
+,NA,Diabetes
+,NA,Respiratory
+,NA,Autoimmune
+Biomarkers,Alanine aminotransferase,NA
+,Albumin,NA
+,Alkaline phosphatase,NA
+,Apolipoprotein A,NA
+,Apolipoprotein B,NA
+,Aspartate aminotransferase,NA
+,C-reactive protein,NA
+,Calcium,NA
+,Cholesterol,NA
+,Creatinine,NA
+,Cystatin C,NA
+,Direct bilirubin,NA
+,Gamma glutamyltransferase,NA
+,Glucose,NA
+,Glycated haemoglobin (HbA1c),NA
+,HDL cholesterol,NA
+,IGF-1,NA
+,LDL direct,NA
+,Lipoprotein A,NA
+,Phosphate,NA
+,SHBG,NA
+,Testosterone,NA
+,Total bilirubin,NA
+,Total protein,NA
+,Triglycerides,NA
+,Urate,NA
+,Urea,NA
+,Vitamin D,NA

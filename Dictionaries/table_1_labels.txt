@@ -1,0 +1,91 @@
+Age at recruitment (years)
+Sex
+Ethnicity
+Townsend deprivation index
+Employment status
+Education
+Type of accomodation lived in
+Own or rent accomodation lived in
+Number in household
+Average total household income (GBP)
+Body Mass Index (kg/m2)
+Number of days/week walked 10+ minutes
+Number of days/week of moderate physical activity 10+ minutes
+Number of days/week of vigorous physical activity 10+ minutes
+Physical activity score 1
+Physical activity score 2
+Sleep per 24 hours (hours)
+Oily fish intake
+Non-oily fish intake
+Poultry intake
+Pork intake
+Beef intake
+Lamb/mutton intake
+Processed meat intake
+Cooked vegetable intake (tbsp/day)
+Salad / raw vegetable intake (tbsp/day)
+Fresh fruit intake  (piece/day)
+Dietary intake score 1
+Dietary intake score 2
+Dietary intake score 3
+Dietary intake score 4
+Dietary intake score 5
+Salt added to food
+Tea intake per day (cup)
+Coffee intake per day (cup)
+Water intake per day (glasses)
+Beverage intake score 1
+Beverage intake score 2
+Alcohol intake frequnecy
+Smoking status
+Maternal smoking around birth
+NO2 (ug/m3)
+NOX (ug/m3)
+PM 10 (ug/m3)
+PM 2.5 (Absorbance/m)
+PM 2.5 (ug/m3)
+PM 2.5-10 (ug/m3)
+Close to major road
+Number of medications
+Parental history of COPD
+Parental history of Diabetes
+Parental history of Hypertension
+Parental history of Stroke
+Parental history of Heart disease
+Parental history of Breast cancer
+Parental history of Bowel cancer
+Parental history of Lung cancer
+Parental history of Prostate cancer
+Cardiovascular
+Hypertension
+Diabetes
+Respiratory
+Autoimmune
+Alanine aminotransferase
+Albumin
+Alkaline phosphatase
+Apolipoprotein A
+Apolipoprotein B
+Aspartate aminotransferase
+C-reactive protein
+Calcium
+Cholesterol
+Creatinine
+Cystatin C
+Direct bilirubin
+Gamma glutamyltransferase
+Glucose
+Glycated haemoglobin (HbA1c)
+HDL cholesterol
+IGF-1
+LDL direct
+Lipoprotein A
+Phosphate
+SHBG
+Testosterone
+Total bilirubin
+Total protein
+Triglycerides
+Urate
+Urea
+Vitamin D
