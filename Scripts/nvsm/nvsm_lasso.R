@@ -1,5 +1,6 @@
 # nvsm LASSO (HPC)
 # by ines on march 24
+# updated for new data on march 15
 
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"
@@ -21,12 +22,12 @@ args=commandArgs(trailingOnly=TRUE)
 m=as.numeric(args[1])
 
 ## Load data set
-arr=c("lung.nvsm.1","bladder.nvsm.1")[m]
-dat=readRDS(paste0("../Results/nvsm_denoised/",arr,"_denoised.rds"))
+arr=c("lung_base","bladder_base")[m]
+dat=readRDS(paste0("../Results/nvsm/",arr,"_denoised_nvsm.rds"))
 
 ## Make data set
 y=dat$case_status
-x=subset(dat, select=-c(eid,case_status,nvsm,pvsmn,pvsmy,sm))
+x=subset(dat, select=-c(case_status))
 
 x=as.matrix(x)
 

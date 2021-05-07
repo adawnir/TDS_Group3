@@ -66,16 +66,23 @@ myorder=names(selprop_nonzero)[sort.list(selprop_nonzero, decreasing = TRUE)]
 myaucs=NULL
 myaucs_table=NULL
 
+calib=sum(CalibratedStableRegression(out)) # Number of selected variables
+
+t0=Sys.time()
 for (k in 1:length(myorder)){
-  # Using the average beta as a beta, only computing the intercept in the model below (no impact on AUC)
-  mymodel=glm(y_test~offset(x_test[,myorder[1:k],drop=FALSE]%*%
-                              matrix(average_beta[myorder[1:k]],ncol=1)),
-              family="binomial")
+  # Recalibration of the beta coefficients on the training set
+  mymodel_recalib=glm(y_train~x_train[,myorder[1:k],drop=FALSE], family="binomial")
+  # Prediction using a logistic model with recalibrated beta coefficients
+  mymodel=glm(y_test~offset(x_test[,myorder[1:k],drop=FALSE]%*%matrix(coef(mymodel_recalib)[-1], ncol=1)), family="binomial")
   myroc=roc(response=y_test, predictor=mymodel$fitted.values)
+  if(k==calib){
+    saveRDS(myroc, paste0("../Results/strat_sex_lasso/roc_",arr,".rds")) ### Change path for other stratification
+  }
   myaucs=c(myaucs, myroc$auc)
-  myaucs_table=rbind(myaucs_table, formatC(as.numeric(ci.auc(myroc)), format="f",
-                                           digits=4))
+  myaucs_table=rbind(myaucs_table, formatC(as.numeric(ci.auc(myroc)), format="f", digits=4))
 }
+t1=Sys.time()
+print(t1-t0)
 rownames(myaucs_table)=myorder
 colnames(myaucs_table)=c("li","auc","ui")
 saveRDS(myaucs_table, paste0("../Results/strat_sex_lasso/auc_",arr,".rds")) ### Change path for other stratification

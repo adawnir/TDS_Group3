@@ -11,7 +11,7 @@ library(tidyverse)
 library(plotrix)
 library(colorspace)
 library(ggrepel)
-
+library(ggpubr)
 source("penalisation_functions.R")
 
 ### Plot labels----
@@ -20,8 +20,8 @@ plot_annot=plot_annot[-c(1,2,21:25),] # Remove age, sex and BMI
 
 
 ### Load outputs ----
-for (m in 1:6){
-  arr=paste0(rep(c("mal.lung","mal.lower","mal.upper"),each=2),".",1:2)[m]
+for (m in 1:4){
+  arr=paste0(rep(c("mal.lower","mal.upper"),each=2),".",1:2)[m]
   
   ### Lasso
   lasso_out=readRDS(paste0("../Results/strat_site_lasso/out_",arr,".rds")) # Load output
@@ -73,7 +73,7 @@ foo2 = function(l1, l2, s1, s2, order){
 
 # malignant tumor in lower lobe
 colnames=names(lasso_selprop_mal.lower.1)
-myorder=c(colnames[5:46],colnames[1:4],colnames[47:length(colnames)])
+myorder=c(colnames[5:38],colnames[1:4],colnames[39:length(colnames)])
 lasso_selprop_mal.lower=foo(lasso_selprop_mal.lower.1,
                          lasso_selprop_mal.lower.2,
                          myorder)
@@ -107,11 +107,19 @@ beta_mal.lung=foo2(lasso_beta_mal.lung.1, lasso_beta_mal.lung.2,
                     spls_beta_mal.lung.1, spls_beta_mal.lung.2, myorder)
                   
 ### Selection proportion plots----
+
+colnames=names(lasso_beta_mal.lower.1)
+myorder=c(colnames[5:46],colnames[1:4],colnames[47:length(colnames)])
+
+beta_lower.1 = c(lasso_beta_mal.lower.1[5:46],lasso_beta_mal.lower.1[1:4],lasso_beta_mal.lower.1[47:length(lasso_beta_mal.lower.1)])
+beta_upper.1 = c(lasso_beta_mal.upper.1[5:46],lasso_beta_mal.upper.1[1:4],lasso_beta_mal.upper.1[47:length(lasso_beta_mal.upper.1)])
+
+cbind
 ## Glabal settings
 mylabels=plot_annot$label
 myref=plot_annot$ref
 variable_cat=c(rep("Sociodemographic",18),
-               rep("Health risk", 28),
+               rep("Health risk", 20),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
@@ -123,14 +131,78 @@ xseq=seq((n+1),length(myorder)*myspacing, by=myspacing)
 background=TRUE
 myrange=c(0,1)
 
-## Tumor in Lower Lobe
-pi_spls=c(spls_hat_params_mal.lower.1[2],spls_hat_params_mal.lower.2[2]) # sPLS Selection proportion threshold
-pi_lasso=c(lasso_hat_params_mal.lower.1[2],lasso_hat_params_mal.lower.2[2]) # LASSO Selection proportion threshold
-file_path="mal.lower"
-spls=spls_selprop_mal.lower
-lasso=lasso_selprop_mal.lower
-background_colour="royalblue" # For lower lobe
+betas_lower.1 <- as.data.frame(lasso_beta_mal.lower.1)
+betas_upper.1<-as.data.frame(lasso_beta_mal.upper.1)
+betas.1<-data.frame(betas_lower.1, betas_upper.1, variable_cat)
 
+betas_lower.2 <- as.data.frame(lasso_beta_mal.lower.2)
+betas_upper.2<-as.data.frame(lasso_beta_mal.upper.2)
+betas.2<-data.frame(betas_lower.2, betas_upper.2, variable_cat_86)
+
+
+# 
+# rownames(forest)
+# forest$`Variable group` <- NA
+# forest$`Variable group`[1:22] <- 'Sociodemographic'
+# forest$`Variable group`[23:39] <- 'Health risk'
+# forest$`Variable group`[40:46] <- 'Environmental'
+# forest$`Variable group`[47:62] <- 'Medical'
+# forest$`Variable group`[63:90] <- 'Biomarkers'
+
+## Tumor in Lower Lobe
+# pi_spls=c(spls_hat_params_mal.lower.1[2],spls_hat_params_mal.lower.2[2]) # sPLS Selection proportion threshold
+# pi_lasso=c(lasso_hat_params_mal.lower.1[2],lasso_hat_params_mal.lower.2[2]) # LASSO Selection proportion threshold
+# file_path="mal.lower"
+# spls=spls_selprop_mal.lower
+# lasso=lasso_selprop_mal.lower
+# background_colour="royalblue" # For lower lobe
+# 
+# mylabels=plot_annot$label
+# myref=plot_annot$ref
+variable_cat_86=c(rep("Sociodemographic",18),
+               rep("Health risk", 16),
+               rep("Environmental", 8),
+               rep("Medical", 16),
+               rep("Biomarkers", 28))
+# models=c("Lung Cancer", "Bladder Cancer")
+# mycolours=darken(c("darkturquoise","hotpink"), amount=0.3)
+# n=2 # Number of lines per variable
+# myspacing=n*2+1
+# xseq=seq((n+1),length(myorder)*myspacing, by=myspacing)
+# background=TRUE
+# myrange=c(0,1)
+
+### OR scatter plots-----
+numberlabels1 <- 1:90
+numberlabels1 <- as.character(numberlabels1)
+
+numberlabels2 <- 1:86
+numberlabels2 <- as.character(numberlabels2)
+
+plot1 <- ggplot(betas.1, aes(x=lasso_beta_mal.lower.1, y=lasso_beta_mal.upper.1, color = variable_cat)) + 
+  geom_point(size=2) + geom_text_repel(label=numberlabels1) + 
+  geom_abline(linetype = 'dashed', colour = 'grey') +
+  geom_hline(yintercept = 1, linetype = 'dashed', colour = 'grey') +
+  geom_vline(xintercept = 1, linetype = 'dashed', colour = 'grey') +
+  ylab('Upper lobe ORs') + xlab('Lower lobe ORs') +
+  ggtitle('Base model') + theme_bw()
+p5 <- plot1 + scale_color_manual(values=c("gold", "forestgreen", "tomato", 'royalblue', 'grey50'))
+
+
+plot2 <- ggplot(betas.2, aes(x=lasso_beta_mal.lower.2, y=lasso_beta_mal.upper.2, color = variable_cat_86)) + 
+  geom_point(size=2) + geom_text_repel(label=numberlabels2) + 
+  geom_abline(linetype = 'dashed', colour = 'grey') +
+  geom_hline(yintercept = 1, linetype = 'dashed', colour = 'grey') +
+  geom_vline(xintercept = 1, linetype = 'dashed', colour = 'grey') +
+  ylab('Upper lobe ORs') + xlab('Lower lobe ORs') +
+  ggtitle('Adjusted model') + theme_bw()
+p6 <- plot2 + scale_color_manual(values=c("gold", "forestgreen", "tomato", 'royalblue', 'grey50'))
+
+p7 <- ggarrange(p5, p6, common.legend = T, legend = 'right', nrow = 1)
+
+pdf("../Figures/Presentation/or_sites.pdf", height = 5, width = 12)
+p7
+dev.off()
 
 {pdf("../Figures/selprop_mal.lower.pdf", height = 6, width = 11)
   par(oma=c(1, 5, 5, 1), mfrow=c(2,1),las=0)
@@ -517,7 +589,7 @@ background_colour="darkgreen" # For upper lobe
 
 ### Beta plot----
 variable_cat=c(rep("Sociodemographic",18),
-               rep("Health risk", 28),
+               rep("Health risk", 20),
                rep("Environmental", 8),
                rep("Medical", 16), 
                rep("Biomarkers", 28))
@@ -528,7 +600,7 @@ xlim=c(0.25,1.75)
 ylim=c(-0.25,0.75)
 beta_mal.lower$var_cat=rep(variable_cat,2)
 beta_mal.lower$label=rep(1:(nrow(beta_mal.lower)/2), 2)
-beta_mal.lower$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
+beta_mal.lower$mycolour_point=c(lighten(rep(mycolours,times=c(18,20,8,16,28)),0.2),rep(mycolours,times=c(18,20,8,16,28)))
 beta_mal.lower$mycolour_lab=darken(beta_mal.lower$mycolour_point, amount=0.5)
 p1=ggplot(beta_mal.lower, aes(or, load,
                            label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
@@ -555,7 +627,7 @@ xlim=c(0.5,1.5)
 ylim=c(-0.25,0.55)
 beta_mal.lung$var_cat=rep(variable_cat,2)
 beta_mal.lung$label=rep(1:(nrow(beta_mal.lung)/2), 2)
-beta_mal.lung$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
+beta_mal.lung$mycolour_point=c(lighten(rep(mycolours,times=c(18,20,8,16,28)),0.2),rep(mycolours,times=c(18,20,8,16,28)))
 beta_mal.lung$mycolour_lab=darken(beta_mal.lung$mycolour_point, amount=0.5)
 p2=ggplot(beta_mal.lung, aes(or, load, label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),
                                                      "",label))) +
@@ -582,7 +654,7 @@ xlim=c(0.25,1.75)
 ylim=c(-0.25,0.75)
 beta_mal.upper$var_cat=rep(variable_cat,2)
 beta_mal.upper$label=rep(1:(nrow(beta_mal.upper)/2), 2)
-beta_mal.upper$mycolour_point=c(lighten(rep(mycolours,times=c(18,28,8,16,28)),0.2),rep(mycolours,times=c(18,28,8,16,28)))
+beta_mal.upper$mycolour_point=c(lighten(rep(mycolours,times=c(18,20,8,16,28)),0.2),rep(mycolours,times=c(18,20,8,16,28)))
 beta_mal.upper$mycolour_lab=darken(beta_mal.upper$mycolour_point, amount=0.5)
 p3=ggplot(beta_mal.upper, aes(or, load,
                            label=ifelse(((abs(or-1)<0.1&load==0)|(or==1&abs(load)<0.1)),

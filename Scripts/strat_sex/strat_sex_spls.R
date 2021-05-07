@@ -29,6 +29,11 @@ dat=readRDS(paste0("../Results/strat_sex_denoised/",arr,"_denoised.rds")) ### Ch
 ## Make data set
 y=dat$case_status
 x=dat[,-1]
+train=readRDS(paste0("../Results/strat_sex_denoised/",arr,"_split.rds"))
+y_train=y[train]
+x_train=x[train,]
+y_test=y[-train]
+x_test=x[-train, ]
 
 ## Create directories
 ifelse(dir.exists("../Figures/strat_sex_spls"),"",dir.create("../Figures/strat_sex_spls")) ### Change path for other stratification
@@ -36,7 +41,7 @@ ifelse(dir.exists("../Results/strat_sex_spls"),"",dir.create("../Results/strat_s
 
 t0=Sys.time()
 ## Running stability selection
-out <- CalibrateRegression(xdata = x, ydata = y, Lambda=1:ncol(x), family="binomial",
+out <- CalibrateRegression(xdata = x_train, ydata = y_train, Lambda=1:ncol(x), family="binomial",
                            implementation="SparsePLS", K=100)
 t1=Sys.time()
 print(t1-t0)
@@ -72,14 +77,21 @@ saveRDS(out, paste0("../Results/strat_sex_spls/out_",arr,".rds")) ### Change pat
 saveRDS(selprop, paste0("../Results/strat_sex_spls/selprop_",arr,".rds")) ### Change path for other stratification
 saveRDS(average_beta, paste0("../Results/strat_sex_spls/beta_",arr,".rds")) ### Change path for other stratification
 
+# Prediction performance (with recalibration)
+selected=CalibratedStableRegression(out)
+selected=names(selected[selected==1])
+mypls=plsda(X=x_train[,selected], Y=y_train, ncomp=1)
+predictions=predict(mypls, newdata=x_test[,selected])
+y_pred=predictions$predict[,2,1]
+myroc=roc(response=y_test, predictor=y_pred)
+saveRDS(myroc, paste0("../Results/strat_sex_spls/roc_",arr,".rds"))
 
-
-
-
-
-
-
-
-
+# # Misclassification rates based on max dist (with recalibration)
+# y_pred <- predictions$class$max.dist
+# mr_controls <- sum(y_pred == 1)/length(y_pred)
+# mr_cases <- sum(y_pred == 0)/length(y_pred)
+# 
+# saveRDS(mr_controls, paste0("../Results/strat_sex_spls/mr_controls_",arr,".rds"))
+# saveRDS(mr_cases, paste0("../Results/strat_sex_spls/mr_cases_",arr,".rds"))
 
 

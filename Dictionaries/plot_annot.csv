@@ -1,4 +1,4 @@
-label,ref,label_ref,label.point
+﻿label,ref,label_ref,label.point
 Age,NA,Age,Age
 Sex: Male (ref. Female),NA,Sex: Male (ref. Female),Sex (Male)
 Ethnicity Non-white (ref. White),NA,Ethnicity: Non-white (ref. White),Ethnicity (Non-white)
@@ -9,10 +9,10 @@ Unable to work,Employment status (ref. Employed),Employment status: Unable to wo
 Unemployed,Employment status (ref. Employed),Employment status: Unemployed (ref. Employed),Employment (Unemployed)
 Low,Education (ref. Intermediate),Education: Low (ref. Intermediate),Education (Low)
 High,Education (ref. Intermediate),Education: High (ref. Intermediate),Education (High)
-Flat,Type of accomodation (ref. House),Type of accomodation: Flat (ref. House),Type of accomidation (Flat)
-Other,Type of accomodation (ref. House),Type of accomodation: Other (ref. House),Type of accomidation (Other)
+Flat,Type of accommodation (ref. House),Type of accommodation: Flat (ref. House),Type of accommodation (Flat)
+Other,Type of accommodation (ref. House),Type of accommodation: Other (ref. House),Type of accommodation (Other)
 Rent,Own or rent (ref. Own),Own or rent: Rent (ref. Own),Own or rent (Rent)
-Other,Own or rent (ref. Own),Own or rent: (ref. Own),Own or rent (Other)
+Other,Own or rent (ref. Own),Own or rent: Other (ref. Own),Own or rent (Other)
 1,# in household (ref. 2),# in household: 1 (ref. 2),# in HH (1)
 3 to 4,# in household (ref. 2),# in household: 3 to 4 (ref. 2),# in HH (3 to 4)
 >=5,# in household (ref. 2),# in household: >=5 (ref. 2),# in HH (>=5)
@@ -21,45 +21,37 @@ Other,Own or rent (ref. Own),Own or rent: (ref. Own),Own or rent (Other)
 ">=52,000","Average income (GBP) (ref. 18,000-30,999)","Average income (GBP): >=52,000 (ref. 18,000-30,999)","HH income (>=52,000)"
 Underweight,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Underweight (ref. Normal),BMI (Underweight)
 Pre-obesity,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Pre-obesity (ref. Normal),BMI (Pre-obesity)
-Obsesity class I,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class I (ref. Normal),BMI (Obsesity class I)
-Obsesity class II,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class II (ref. Normal),BMI (Obsesity class II)
-Obsesity class III,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class IIII (ref. Normal),BMI (Obsesity class III)
-Physical activity score,NA,Physical activity score,Physical activity score
+Obesity class I,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class I (ref. Normal),BMI (Obesity class I)
+Obesity class II,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class II (ref. Normal),BMI (Obesity class II)
+Obesity class III,Body Mass Index (kg/m^2) (ref. Normal),Body Mass Index (kg/m^2): Obesity class IIII (ref. Normal),BMI (Obesity class III)
+Physical activity score 1,NA,Physical activity score 1,Physical activity score 1
+Physical activity score 2,NA,Physical activity score 2,Physical activity score 2
 <=6,Sleep per 24 hours (hours) (ref. 7-8),Sleep per 24 hours (hours): <=6 (ref. 7-8),Sleep (<=6)
 >=9,Sleep per 24 hours (hours) (ref. 7-8),Sleep per 24 hours (hours) >=9 (ref. 7-8),Sleep (>=9)
-Total meat intake score,NA,Total meat intake score,Total meat intake score
-White meat intake score,NA,White meat intake score,White meat intake score
-Red meat intake score,NA,Red meat intake score,Red meat intake score
-Less than once a week,Processed meat intake (ref. Never),Processed meat intake: Less than once a week (ref. Never),Processed meat (<1/week)
-Once a week,Processed meat intake (ref. Never),Processed meat intake: Once a week (ref. Never),Processed meat (1/week)
-More than once a week,Processed meat intake (ref. Never),Processed meat intake: More than once a week (ref. Never),Processed meat (>1/week)
-Total fruit/veg intake score,NA,Total fruit/veg intake score,Total fruit/veg intake score
-Sometimes,Salt added to food (ref. Never/rarely),Salt added to food: Sometimes (ref. Never/rarely),Salt (Sometimes)
-Usually,Salt added to food (ref. Never/rarely),Salt added to food: Usually (ref. Never/rarely),Salt (Usually)
-Always,Salt added to food (ref. Never/rarely),Salt added to food: Always (ref. Never/rarely),Salt (Always)
-<=1,Tea intake per day (cup) (ref. 0),Tea intake per day (cup): <=1 (ref. 0),Tea (>=1)
-2 to 3,Tea intake per day (cup) (ref. 0),Tea intake per day (cup): 2 to 3 (ref. 0),Tea (2 to 3)
->=4,Tea intake per day (cup) (ref. 0),Tea intake per day (cup): >=4 (ref. 0),Tea (>=4)
-<=1,Coffee intake per day (cup) (ref. 0),Coffee intake per day (cup): <=1 (ref. 0),Coffee (>=1)
-2 to 3,Coffee intake per day (cup) (ref. 0),Coffee intake per day (cup): 2 to 3 (ref. 0),Coffee (2 to 3)
->=4,Coffee intake per day (cup) (ref. 0),Coffee intake per day (cup): >=4 (ref. 0),Coffee (>=4)
-<=1,Water intake per day (glasses) (ref. 0),Water intake per day (glasses): <=1 (ref. 0),Water (>=1)
-2 to 3,Water intake per day (glasses) (ref. 0),Water intake per day (glasses): 2 to 3 (ref. 0),Water (2 to 3)
->=4,Water intake per day (glasses) (ref. 0),Water intake per day (glasses): >=4 (ref. 0),Water (>=4)
-Occassionally,Alcohol intake frequnecy (ref. Never/rarely),Alcohol intake frequnecy: Occassionally (ref. Never/rarely),Alcohol (Occassionally)
-Regularly,Alcohol intake frequnecy (ref. Never/rarely),Alcohol intake frequnecy: Regularly (ref. Never/rarely),Alcohol (Regularly)
-"Never  - Yes, smoker in HH",Smoking status (ref. Never - No smoker in HH),"Smoking status: Never - Yes, smoker in HH (ref. Never - No smoker in HH)","Never smoker - Yes, smoker in HH"
+Dietary intake score 1,NA,Dietary intake score 1,Dietary intake score 1
+Dietary intake score 2,NA,Dietary intake score 2,Dietary intake score 2
+Dietary intake score 3,NA,Dietary intake score 3,Dietary intake score 3
+Dietary intake score 4,NA,Dietary intake score 4,Dietary intake score 4
+Dietary intake score 5,NA,Dietary intake score 5,Dietary intake score 5
+Sometimes,Salt added to food,Salt added to food: Sometimes,Salt (Sometimes)
+Usually,Salt added to food,Salt added to food: Usually,Salt (Usually)
+Always,Salt added to food,Salt added to food: Always,Salt (Always)
+Beverage intake score 1,NA,Beverage intake score 1,Beverage intake score 1
+Beverage intake score 2,NA,Beverage intake score 2,Beverage intake score 2
+Occasionally,Alcohol intake frequency (ref. Never/rarely),Alcohol intake frequency: Occasionally (ref. Never/rarely),Alcohol (Occasionally)
+Regularly,Alcohol intake frequency (ref. Never/rarely),Alcohol intake frequency: Regularly (ref. Never/rarely),Alcohol (Regularly)
+"Never  - Yes, smoker in HH",Smoking status (ref. Never - No smoker in HH),"Smoking status: Never - Yes, smoker in HH (ref. Never - No smoker in HH)","Never smoker - Yes, smoker in HH"
 Previous - No smoker in HH,Smoking status (ref. Never - No smoker in HH),Smoking status: Previous - No smoker in HH (ref. Never - No smoker in HH),Previous smoker - No smoker in HH
 "Previous - Yes, smoker in HH",Smoking status (ref. Never - No smoker in HH),"Smoking status: Previous - Yes, smoker in HH (ref. Never - No smoker in HH)","Previous smoker - Yes, smoker in HH"
 Current,Smoking status (ref. Never - No smoker in HH),Smoking status: Current (ref. Never - No smoker in HH),Current smoker
-Maternal smoking around birth (ref. No),,Maternal smoking around birth (ref. No),Maternal smoking around birth
+Maternal smoking around birth (ref. No),NA,Maternal smoking around birth (ref. No),Maternal smoking around birth
 NO[2] (ug/m^3),NA,NO[2] (ug/m^3),NO2
 NO[x] (ug/m^3),NA,NO[x] (ug/m^3),NOx
 PM 10 (ug/m^3),NA,PM 10 (ug/m^3),PM 10
 PM 2.5 (Absorbance/m),NA,PM 2.5 (Absorbance/m),PM 2.5 absorbance
 PM 2.5 (ug/m^3),NA,PM 2.5 (ug/m^3),PM 2.5
 PM 2.5-10 (ug/m^3),NA,PM 2.5-10 (ug/m^3),PM 2.5-10
-Close to major road (ref. No),,Close to major road (ref. No),Close to major road
+Close to major road (ref. No),NA,Close to major road (ref. No),Close to major road
 1,# of medications (ref. 0),# of medications: 1 (ref. 0),# of med (1)
 >1,# of medications (ref. 0),# of medications: >1 (ref. 0),# of med (>1)
 COPD,Parental history (ref. No),Parental history of COPD (ref. No),Parent (COPD)
@@ -71,11 +63,11 @@ Breast cancer,Parental history (ref. No),Parental history of Breast cancer (ref.
 Bowel cancer,Parental history (ref. No),Parental history of Bowel cancer (ref. No),Parent (Bowel cancer)
 Lung cancer,Parental history (ref. No),Parental history of Lung cancer (ref. No),Parent (Lung cancer)
 Prostate cancer,Parental history (ref. No),Parental history of Prostate cancer(ref. No),Parent (Prostate cancer)
-Cardiovascular,Medial history (ref. No),Cardiovascular (ref. No),Cardiovascular
-Hypertension,Medial history (ref. No),Hypertension (ref. No),Hypertension
-Diabetes,Medial history (ref. No),Diabetes (ref. No),Diabetes
-Respiratory,Medial history (ref. No),Respiratory (ref. No),Respiratory
-Autoimmune,Medial history (ref. No),Autoimmune (ref. No),Autoimmune
+Cardiovascular,Medical history (ref. No),Cardiovascular (ref. No),Cardiovascular
+Hypertension,Medical history (ref. No),Hypertension (ref. No),Hypertension
+Diabetes,Medical history (ref. No),Diabetes (ref. No),Diabetes
+Respiratory,Medical history (ref. No),Respiratory (ref. No),Respiratory
+Autoimmune,Medical history (ref. No),Autoimmune (ref. No),Autoimmune
 Alanine aminotransferase,NA,Alanine aminotransferase,Alanine aminotransferase
 Albumin,NA,Albumin,Albumin
 Alkaline phosphatase,NA,Alkaline phosphatase,Alkaline phosphatase

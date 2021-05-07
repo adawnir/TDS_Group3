@@ -12,7 +12,6 @@
 /RMarkdown
 /PLS_plots
 /Scripts/PLS
-/Scripts/PLS/sh_files_for_PLS
 
 # History files
 .Rhistory
@@ -55,4 +54,4 @@ vignettes/*.pdf
 .Renviron
 
 # howtoHPC
-howtoHPC.txt
+howtoHPC

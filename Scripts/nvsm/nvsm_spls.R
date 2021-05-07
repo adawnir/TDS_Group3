@@ -1,5 +1,5 @@
 # smoker spls
-# by ines on march 23
+# by ines on march 23, updated april 9 for new data & 22nd
 rm(list=ls())
 project_path="/rds/general/project/hda_students_data/live/Group3/TDS_Group3/Scripts"
 setwd(project_path)
@@ -22,12 +22,12 @@ m=as.numeric(args[1])
 
 
 ## Load data set
-arr=paste0(rep(c("lung","bladder"),each=2),".nvsm.",0:1)[m] ### Change name for other stratification
-dat<-readRDS(paste0("../Results/nvsm_denoised/",arr,"_denoised.rds")) ### Change path for other stratification
+arr=paste0(rep(c("lung","bladder"),each=2),c("_base_denoised_nvsm","_one_hot"))[m] ### Change name for other stratification
+dat<-readRDS(paste0("../Results/nvsm/",arr,".rds")) ### Change path for other stratification
 
 ## Make data set
 y=dat$case_status
-x=subset(dat, select=-c(eid,case_status,nvsm))
+x=subset(dat, select=-c(case_status))
 
 ## Create directories
 ifelse(dir.exists("../Figures/nvsm_spls"),"",dir.create("../Figures/nvsm_spls")) ### Change path for other stratification

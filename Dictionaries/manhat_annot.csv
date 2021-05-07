@@ -1,24 +1,25 @@
-col.name,label
+﻿col.name,label
+smoking,Smoking status
 ethnic,Ethnicity
 townsend,Townsend deprivation index
 employment,Employment status
 education,Education
-type_accom,Type of accomodation lived in
-own_rent,Own or rent accomodation lived in
+type_accom,Type of accommodation lived in
+own_rent,Own or rent accommodation lived in
 num_hh,Number in household
 hh_income,Average total household income
-phys_score,Physical activity score
+phys_PC1,Physical activity score 1
+phys_PC2,Physical activity score 2
 sleep,Sleep per 24 hours (hours)
-total_meat,Total meat intake score
-white_meat,White meat intake score
-red_meat,Red meat intake score
-pro_meat,Processed meat intake
-total_fru_veg,Total fruit/veg intake score
-salt,Salt added to food
-tea,Tea intake per day
-coffee,Coffee intake per day
-water,Water intake per day
-alcohol,Alcohol intake frequnecy
+diet_PC1,Dietary intake score 1
+diet_PC2,Dietary intake score 2
+diet_PC3,Dietary intake score 3
+diet_PC4,Dietary intake score 4
+diet_PC5,Dietary intake score 5
+salt,Salt added on food
+bev_PC1,Dietary intake score 1
+bev_PC2,Dietary intake score 2
+alcohol,Alcohol intake frequency
 mat_smoke,Maternal smoking around birth
 no2,NO[2] (ug/m^3)
 nox,NO[x] (ug/m^3)
